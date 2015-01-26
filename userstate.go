@@ -54,6 +54,7 @@ func NewUserState(connectionString string, randomseed bool) *UserState {
 	state.users = db.NewHashMap(host, "users")
 	state.usernames = db.NewSet(host, "usernames")
 	state.unconfirmed = db.NewSet(host, "unconfirmed")
+
 	state.host = host
 
 	// For the secure cookies
@@ -249,7 +250,8 @@ func (state *UserState) MarkConfirmed(username string) {
 func (state *UserState) RemoveUser(username string) {
 	state.usernames.Del(username)
 	// Remove additional data as well
-	state.users.DelKey(username, "loggedin")
+	//state.users.DelKey(username, "loggedin")
+	state.users.Del(username)
 }
 
 // Mark user as an administrator.
