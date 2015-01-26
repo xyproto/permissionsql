@@ -105,7 +105,7 @@ func (state *UserState) HasUser(username string) bool {
 	val, err := state.usernames.Has(username)
 	if err != nil {
 		// This happened at concurrent connections before introducing the connection pool
-		panic("ERROR: Lost connection to Redis?")
+		panic("ERROR: Lost connection to database?")
 	}
 	return val
 }
