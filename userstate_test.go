@@ -7,6 +7,8 @@ import (
 )
 
 func TestPerm(t *testing.T) {
+	db.Verbose = true
+
 	userstate := NewUserStateSimple()
 
 	userstate.AddUser("bob", "hunter1", "bob@zombo.com")
