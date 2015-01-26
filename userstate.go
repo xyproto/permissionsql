@@ -5,14 +5,15 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
-	"strings"
 	"time"
 
-	"github.com/xyproto/simpleredis"
+	"github.com/xyproto/db"
+	"github.com/xyproto/permissions2"
 )
 
 const (
-	defaultRedisServer = ":6379"
+	// username:password@host:port/database
+	defaultConnectionString = "localhost:3306/"
 )
 
 var (
@@ -20,132 +21,45 @@ var (
 )
 
 type UserState struct {
-	// see: http://redis.io/topics/data-types
-	users             *simpleredis.HashMap        // Hash map of users, with several different fields per user ("loggedin", "confirmed", "email" etc)
-	usernames         *simpleredis.Set            // A list of all usernames, for easy enumeration
-	unconfirmed       *simpleredis.Set            // A list of unconfirmed usernames, for easy enumeration
-	pool              *simpleredis.ConnectionPool // A connection pool for Redis
-	dbindex           int                         // Redis database index
-	cookieSecret      string                      // Secret for storing secure cookies
-	cookieTime        int64                       // How long a cookie should last, in seconds
-	passwordAlgorithm string                      // The hashing algorithm to utilize default: "bcrypt+" allowed: ("sha256", "bcrypt", "bcrypt+")
-}
-
-// Interface for making it possible to depend on different versions of the permission package, or other packages that implement userstates.
-type UserStateKeeper interface {
-	UserRights(req *http.Request) bool
-	HasUser(username string) bool
-	BooleanField(username, fieldname string) bool
-	SetBooleanField(username, fieldname string, val bool)
-	IsConfirmed(username string) bool
-	IsLoggedIn(username string) bool
-	AdminRights(req *http.Request) bool
-	IsAdmin(username string) bool
-	UsernameCookie(req *http.Request) (string, error)
-	SetUsernameCookie(w http.ResponseWriter, username string) error
-	AllUsernames() ([]string, error)
-	Email(username string) (string, error)
-	PasswordHash(username string) (string, error)
-	AllUnconfirmedUsernames() ([]string, error)
-	ConfirmationCode(username string) (string, error)
-	AddUnconfirmed(username, confirmationCode string)
-	RemoveUnconfirmed(username string)
-	MarkConfirmed(username string)
-	RemoveUser(username string)
-	SetAdminStatus(username string)
-	RemoveAdminStatus(username string)
-	addUserUnchecked(username, passwordHash, email string)
-	AddUser(username, password, email string)
-	SetLoggedIn(username string)
-	SetLoggedOut(username string)
-	Login(w http.ResponseWriter, username string)
-	Logout(username string)
-	Username(req *http.Request) string
-	CookieTimeout(username string) int64
-	SetCookieTimeout(cookieTime int64)
-	PasswordAlgo() string
-	SetPasswordAlgo(algorithm string) error
-	HashPassword(username, password string) string
-	CorrectPassword(username, password string) bool
-	AlreadyHasConfirmationCode(confirmationCode string) bool
-	FindUserByConfirmationCode(confirmationcode string) (string, error)
-	Confirm(username string)
-	ConfirmUserByConfirmationCode(confirmationcode string) error
-	SetMinimumConfirmationCodeLength(length int)
-	GenerateUniqueConfirmationCode() (string, error)
-
-	// Related to the database backend
-	Users() *simpleredis.HashMap
-	DatabaseIndex() int
-	Pool() *simpleredis.ConnectionPool
-	Close()
+	users             *db.HashMap // Hash map of users, with several different fields per user ("loggedin", "confirmed", "email" etc)
+	usernames         *db.Set     // A list of all usernames, for easy enumeration
+	unconfirmed       *db.Set     // A list of unconfirmed usernames, for easy enumeration
+	host              db.IHost    // A database host
+	cookieSecret      string      // Secret for storing secure cookies
+	cookieTime        int64       // How long a cookie should last, in seconds
+	passwordAlgorithm string      // The hashing algorithm to utilize default: "bcrypt+" allowed: ("sha256", "bcrypt", "bcrypt+")
 }
 
 // Create a new *UserState that can be used for managing users.
 // The random number generator will be seeded after generating the cookie secret.
-// A connection pool for the local Redis server (dbindex 0) will be created.
+// A Host* for the local MariaDB/MySQL server will be created.
 func NewUserStateSimple() *UserState {
-	// db index 0, initialize random generator after generating the cookie secret
-	return NewUserState(0, true, defaultRedisServer)
-}
-
-// Same as NewUserStateSimple, but takes a hostname and a password.
-// Use NewUserState for control over the database index and port number.
-func NewUserStateWithPassword(hostname, password string) *UserState {
-	// db index 0, initialize random generator after generating the cookie secret, password
-	connectTo := hostname
-	if (password == "") && (strings.Count(hostname, ":") == 0) {
-		connectTo = hostname + ":6379"
-	} else if strings.Count(hostname, ":") > 0 {
-		connectTo = password + "@" + hostname
-	} else {
-		connectTo = password + "@" + hostname + ":6379"
-	}
-	// Create a new UserState with database index 0, "true" for seeding the
-	// random number generator and host string
-	return NewUserState(0, true, connectTo)
+	// connection string | initialize random generator after generating the cookie secret
+	return NewUserState(defaultConnectionString, true)
 }
 
 // Create a new *UserState that can be used for managing users.
-// dbindex is the Redis database index (0 is a good default value).
+// connectionString may be on the form "username:password@host:port/database".
 // If randomseed is true, the random number generator will be seeded after generating the cookie secret (true is a good default value).
-// redisHostPort is host:port for the desired Redis server (can be blank for localhost)
-// Also creates a new ConnectionPool.
-func NewUserState(dbindex int, randomseed bool, redisHostPort string) *UserState {
-	var pool *simpleredis.ConnectionPool
-
-	// Connnect to the default redis server if redisHostPort is empty
-	if redisHostPort == "" {
-		redisHostPort = defaultRedisServer
-	}
-
+func NewUserState(connectionString string, randomseed bool) *UserState {
 	// Test connection
-	if err := simpleredis.TestConnectionHost(redisHostPort); err != nil {
+	if err := db.TestConnectionHost(connectionString); err != nil {
 		log.Fatalln(err.Error())
 	}
 
-	// Aquire connection pool
-	pool = simpleredis.NewConnectionPoolHost(redisHostPort)
+	host := db.NewHost(connectionString)
 
 	state := new(UserState)
 
-	state.users = simpleredis.NewHashMap(pool, "users")
-	state.users.SelectDatabase(dbindex)
-
-	state.usernames = simpleredis.NewSet(pool, "usernames")
-	state.usernames.SelectDatabase(dbindex)
-
-	state.unconfirmed = simpleredis.NewSet(pool, "unconfirmed")
-	state.unconfirmed.SelectDatabase(dbindex)
-
-	state.pool = pool
-
-	state.dbindex = dbindex
+	state.users = db.NewHashMap(host, "users")
+	state.usernames = db.NewSet(host, "usernames")
+	state.unconfirmed = db.NewSet(host, "unconfirmed")
+	state.host = host
 
 	// For the secure cookies
 	// This must happen before the random seeding, or
 	// else people will have to log in again after every server restart
-	state.cookieSecret = RandomCookieFriendlyString(30)
+	state.cookieSecret = permissions.RandomCookieFriendlyString(30)
 
 	// Seed the random number generator
 	if randomseed {
@@ -153,33 +67,28 @@ func NewUserState(dbindex int, randomseed bool, redisHostPort string) *UserState
 	}
 
 	// Cookies lasts for 24 hours by default. Specified in seconds.
-	state.cookieTime = defaultCookieTime
+	state.cookieTime = 3600 * 24
 
 	// Default password hashing algorithm is "bcrypt+", which is the same as
 	// "bcrypt", but with backwards compatibility for checking sha256 hashes.
 	state.passwordAlgorithm = "bcrypt+" // "bcrypt+", "bcrypt" or "sha256"
 
-	if !pool.Ping() {
-		defer pool.Close()
-		log.Fatalf("Error, wrong hostname, port or password. (%s does not reply to PING)\n", redisHostPort)
+	if err := host.Ping(); err != nil {
+		defer host.Close()
+		log.Fatalf("Error when pinging %s: %s\n", connectionString, err.Error())
 	}
 
 	return state
 }
 
-// Get the Redis database index.
-func (state *UserState) DatabaseIndex() int {
-	return state.dbindex
+// Get the database host
+func (state *UserState) Host() db.IHost {
+	return state.host
 }
 
-// Get the Redis connection pool.
-func (state *UserState) Pool() *simpleredis.ConnectionPool {
-	return state.pool
-}
-
-// Close the Redis connection pool.
+// Close the connection to the database host
 func (state *UserState) Close() {
-	state.pool.Close()
+	state.host.Close()
 }
 
 // Check if the current user is logged in and has user rights.
@@ -267,7 +176,7 @@ func (state *UserState) IsAdmin(username string) bool {
 
 // Retrieve the username that is stored in a cookie in the browser, if available.
 func (state *UserState) UsernameCookie(req *http.Request) (string, error) {
-	username, ok := SecureCookie(req, "user", state.cookieSecret)
+	username, ok := permissions.SecureCookie(req, "user", state.cookieSecret)
 	if ok && (username != "") {
 		return username, nil
 	}
@@ -285,7 +194,7 @@ func (state *UserState) SetUsernameCookie(w http.ResponseWriter, username string
 	}
 	// Create a cookie that lasts for a while ("timeout" seconds),
 	// this is the equivivalent of a session for a given username.
-	SetSecureCookiePath(w, "user", username, state.cookieTime, "/", state.cookieSecret)
+	permissions.SetSecureCookiePath(w, "user", username, state.cookieTime, "/", state.cookieSecret)
 	return nil
 }
 
@@ -315,7 +224,7 @@ func (state *UserState) ConfirmationCode(username string) (string, error) {
 }
 
 // Get the users HashMap.
-func (state *UserState) Users() *simpleredis.HashMap {
+func (state *UserState) Users() db.IHashMap {
 	return state.users
 }
 
@@ -572,11 +481,11 @@ func (state *UserState) SetMinimumConfirmationCodeLength(length int) {
 func (state *UserState) GenerateUniqueConfirmationCode() (string, error) {
 	const maxConfirmationCodeLength = 100 // when are the generated confirmation codes unreasonably long
 	length := minConfirmationCodeLength
-	confirmationCode := RandomHumanFriendlyString(length)
+	confirmationCode := permissions.RandomHumanFriendlyString(length)
 	for state.AlreadyHasConfirmationCode(confirmationCode) {
 		// Increase the length of the confirmationCode random string every time there is a collision
 		length++
-		confirmationCode = RandomHumanFriendlyString(length)
+		confirmationCode = permissions.RandomHumanFriendlyString(length)
 		if length > maxConfirmationCodeLength {
 			// This should never happen
 			return confirmationCode, errors.New("Too many generated confirmation codes are not unique!")

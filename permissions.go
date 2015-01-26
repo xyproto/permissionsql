@@ -27,9 +27,9 @@ func New() *Permissions {
 	return NewPermissions(NewUserStateSimple())
 }
 
-// Initialize a Permissions struct with Redis DB index and host:port
-func NewWithRedisConf(dbindex int, hostPort string) *Permissions {
-	return NewPermissions(NewUserState(dbindex, true, hostPort))
+// Initialize a Permissions struct with a database connection string
+func NewWithConf(connectionString string) *Permissions {
+	return NewPermissions(NewUserState(connectionString, true))
 }
 
 // Initialize a Permissions struct with the given UserState and

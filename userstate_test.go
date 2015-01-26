@@ -2,6 +2,8 @@ package permissions
 
 import (
 	"testing"
+
+	"github.com/xyproto/db"
 )
 
 func TestPerm(t *testing.T) {
@@ -119,15 +121,14 @@ func TestPasswordAlgoMatching(t *testing.T) {
 	}
 }
 
-func TestUserStateKeeper(t *testing.T) {
+func TestIUserState(t *testing.T) {
 	userstate := NewUserStateSimple()
-	// Check that the userstate qualifies for the UserStateKeeper interface
-	var _ UserStateKeeper = userstate
+	// Check that the userstate qualifies for the IUserState interface
+	var _ db.IUserState = userstate
 }
 
 func TestHostPassword(t *testing.T) {
-	//userstate := NewUserStateWithPassword("localhost", "foobared")
-	userstate := NewUserStateWithPassword("localhost", "")
+	userstate := NewUserState(":@localhost/", true)
 
 	userstate.AddUser("bob", "hunter1", "bob@zombo.com")
 	if !userstate.HasUser("bob") {
