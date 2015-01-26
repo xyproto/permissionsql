@@ -1,19 +1,22 @@
-#Permissions [![Build Status](https://travis-ci.org/xyproto/permissions2.svg?branch=master)](https://travis-ci.org/xyproto/permissions2) [![GoDoc](https://godoc.org/github.com/xyproto/permissions2?status.svg)](http://godoc.org/github.com/xyproto/permissions2)
+# WORK IN PROGRESS
+# currently the tests fail!
 
-Middleware for keeping track of users, login states and permissions.
+#PermissionSQL [![Build Status](https://travis-ci.org/xyproto/permissionsql.svg?branch=master)](https://travis-ci.org/xyproto/permissionsql) [![GoDoc](https://godoc.org/github.com/xyproto/permissionsql?status.svg)](http://godoc.org/github.com/xyproto/permissionsql)
+
+Middleware for keeping track of users, login states and permissions. Modeled after [permissions2](https://github.com/xyproto/permissions2).
 
 Online API Documentation
 ------------------------
 
-[godoc.org](http://godoc.org/github.com/xyproto/permissions2)
+[godoc.org](http://godoc.org/github.com/xyproto/permissionsql)
 
 
 Features and limitations
 ------------------------
 
-* Uses secure cookies and stores user information in a Redis database. 
-* Suitable for running a local Redis server, registering/confirming users and managing public/user/admin pages.
-* Also supports connecting to remote Redis servers.
+* Uses secure cookies and stores user information in a MariaDB/MySQL database. 
+* Suitable for running a local MariaDB/MySQL server, registering/confirming users and managing public/user/admin pages.
+* Also supports connecting to remote MariaDB/MySQL servers.
 * Supports registration and confirmation via generated confirmation codes.
 * Tries to keep things simple.
 * Only supports "public", "user" and "admin" permissions out of the box, but offers functionality for implementing more fine grained permissions, if so desired.
@@ -33,7 +36,7 @@ import (
 	"strings"
 
 	"github.com/codegangsta/negroni"
-	"github.com/xyproto/permissions2"
+	"github.com/xyproto/permissionsql"
 )
 
 func main() {
@@ -127,7 +130,7 @@ import (
 	"strings"
 
 	"github.com/go-martini/martini"
-	"github.com/xyproto/permissions2"
+	"github.com/xyproto/permissionsql"
 )
 
 func main() {
@@ -225,7 +228,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/xyproto/permissions2"
+	"github.com/xyproto/permissionsql"
 )
 
 func main() {
@@ -332,7 +335,7 @@ import (
 	"strings"
 
 	"github.com/Unknwon/macaron"
-	"github.com/xyproto/permissions2"
+	"github.com/xyproto/permissionsql"
 )
 
 func main() {
@@ -459,7 +462,7 @@ Coding style
 General information
 -------------------
 
-* Version: 2.0
+* Version: 1.0
 * License: MIT
 * Alexander F Rødseth
 
