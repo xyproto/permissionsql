@@ -270,8 +270,10 @@ func (state *UserState) addUserUnchecked(username, passwordHash, email string) {
 	state.usernames.Add(username)
 
 	// Add password and email
-	state.users.Set(username, "password", passwordHash)
-	state.users.Set(username, "email", email)
+	log.Println("ADDING PASSWORD TO users SET:", passwordHash)
+	log.Println(state.users.Set(username, "password", passwordHash))
+	log.Println("ADDING EMAIL TO users SET:", email)
+	log.Println(state.users.Set(username, "email", email))
 
 	// Addditional fields
 	additionalfields := []string{"loggedin", "confirmed", "admin"}
