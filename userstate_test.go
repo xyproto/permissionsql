@@ -9,7 +9,8 @@ import (
 func TestPerm(t *testing.T) {
 	//db.Verbose = true
 
-	userstate := NewUserStateSimple()
+	//userstate := NewUserStateSimple() // for localhost
+	userstate := NewUserState("travis:@127.0.0.1/", true) // for travis-ci
 
 	userstate.AddUser("bob", "hunter1", "bob@zombo.com")
 
