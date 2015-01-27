@@ -6,11 +6,14 @@ import (
 	"github.com/xyproto/db"
 )
 
+const connectionString = "travis:@127.0.0.1/" // for Travis-CI
+//const connectionString = "username:password@host:port/database"
+
 func TestPerm(t *testing.T) {
 	//db.Verbose = true
 
 	//userstate := NewUserStateSimple() // for localhost
-	userstate := NewUserState("travis:@127.0.0.1/", true) // for travis-ci
+	userstate := NewUserState(connectionString, true)
 
 	userstate.AddUser("bob", "hunter1", "bob@zombo.com")
 
@@ -47,7 +50,7 @@ func TestPerm(t *testing.T) {
 
 func TestPasswordBasic(t *testing.T) {
 	//userstate := NewUserStateSimple() // for localhost
-	userstate := NewUserState("travis:@127.0.0.1/", true) // for travis-ci
+	userstate := NewUserState(connectionString, true)
 
 	// Assert that the default password algorithm is "bcrypt+"
 	if userstate.PasswordAlgo() != "bcrypt+" {
@@ -67,7 +70,7 @@ func TestPasswordBasic(t *testing.T) {
 // Check if the functionality for backwards compatible hashing works
 func TestPasswordBackward(t *testing.T) {
 	//userstate := NewUserStateSimple() // for localhost
-	userstate := NewUserState("travis:@127.0.0.1/", true) // for travis-ci
+	userstate := NewUserState(connectionString, true)
 
 	userstate.SetPasswordAlgo("sha256")
 	userstate.AddUser("bob", "hunter1", "bob@zombo.com")
@@ -95,7 +98,7 @@ func TestPasswordBackward(t *testing.T) {
 // Check if the functionality for backwards compatible hashing works
 func TestPasswordNotBackward(t *testing.T) {
 	//userstate := NewUserStateSimple() // for localhost
-	userstate := NewUserState("travis:@127.0.0.1/", true) // for travis-ci
+	userstate := NewUserState(connectionString, true)
 
 	userstate.SetPasswordAlgo("bcrypt")
 	userstate.AddUser("bob", "hunter1", "bob@zombo.com")
@@ -117,7 +120,7 @@ func TestPasswordNotBackward(t *testing.T) {
 
 func TestPasswordAlgoMatching(t *testing.T) {
 	//userstate := NewUserStateSimple() // for localhost
-	userstate := NewUserState("travis:@127.0.0.1/", true) // for travis-ci
+	userstate := NewUserState(connectionString, true)
 
 	// generate two different password using the same credentials but different algos
 	userstate.SetPasswordAlgo("sha256")
@@ -133,7 +136,7 @@ func TestPasswordAlgoMatching(t *testing.T) {
 
 func TestIUserState(t *testing.T) {
 	//userstate := NewUserStateSimple() // for localhost
-	userstate := NewUserState("travis:@127.0.0.1/", true) // for travis-ci
+	userstate := NewUserState(connectionString, true)
 
 	// Check that the userstate qualifies for the IUserState interface
 	var _ db.IUserState = userstate
@@ -141,7 +144,7 @@ func TestIUserState(t *testing.T) {
 
 func TestHostPassword(t *testing.T) {
 	//userstate := NewUserStateSimple() // for localhost
-	userstate := NewUserState("travis:@127.0.0.1/", true) // for travis-ci
+	userstate := NewUserState(connectionString, true)
 
 	userstate.AddUser("bob", "hunter1", "bob@zombo.com")
 	if !userstate.HasUser("bob") {
