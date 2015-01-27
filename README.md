@@ -1,6 +1,8 @@
 #PermissionSQL [![Build Status](https://travis-ci.org/xyproto/permissionsql.svg?branch=master)](https://travis-ci.org/xyproto/permissionsql) [![GoDoc](https://godoc.org/github.com/xyproto/permissionsql?status.svg)](http://godoc.org/github.com/xyproto/permissionsql)
 
-Middleware for keeping track of users, login states and permissions. Modeled after [permissions2](https://github.com/xyproto/permissions2), which uses Redis instead (recommended).
+Middleware for keeping track of users, login states and permissions. Uses MariaDB/MySQL as a backend.
+
+For using Redis as a backend instead (recommended), look into [permissions2](https://github.com/xyproto/permissions2).
 
 Online API Documentation
 ------------------------
