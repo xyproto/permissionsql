@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/xyproto/db"
-	"github.com/xyproto/permissions2"
+	"github.com/xyproto/db"           // MariaDB/MySQL database wrapper
+	"github.com/xyproto/permissions2" // For cookies
 )
 
 const (
