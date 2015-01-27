@@ -46,7 +46,8 @@ func TestPerm(t *testing.T) {
 }
 
 func TestPasswordBasic(t *testing.T) {
-	userstate := NewUserStateSimple()
+	//userstate := NewUserStateSimple() // for localhost
+	userstate := NewUserState("travis:@127.0.0.1/", true) // for travis-ci
 
 	// Assert that the default password algorithm is "bcrypt+"
 	if userstate.PasswordAlgo() != "bcrypt+" {
@@ -65,7 +66,9 @@ func TestPasswordBasic(t *testing.T) {
 
 // Check if the functionality for backwards compatible hashing works
 func TestPasswordBackward(t *testing.T) {
-	userstate := NewUserStateSimple()
+	//userstate := NewUserStateSimple() // for localhost
+	userstate := NewUserState("travis:@127.0.0.1/", true) // for travis-ci
+
 	userstate.SetPasswordAlgo("sha256")
 	userstate.AddUser("bob", "hunter1", "bob@zombo.com")
 	if !userstate.HasUser("bob") {
@@ -91,7 +94,9 @@ func TestPasswordBackward(t *testing.T) {
 
 // Check if the functionality for backwards compatible hashing works
 func TestPasswordNotBackward(t *testing.T) {
-	userstate := NewUserStateSimple()
+	//userstate := NewUserStateSimple() // for localhost
+	userstate := NewUserState("travis:@127.0.0.1/", true) // for travis-ci
+
 	userstate.SetPasswordAlgo("bcrypt")
 	userstate.AddUser("bob", "hunter1", "bob@zombo.com")
 	if !userstate.HasUser("bob") {
@@ -111,7 +116,9 @@ func TestPasswordNotBackward(t *testing.T) {
 }
 
 func TestPasswordAlgoMatching(t *testing.T) {
-	userstate := NewUserStateSimple()
+	//userstate := NewUserStateSimple() // for localhost
+	userstate := NewUserState("travis:@127.0.0.1/", true) // for travis-ci
+
 	// generate two different password using the same credentials but different algos
 	userstate.SetPasswordAlgo("sha256")
 	sha256_hash := userstate.HashPassword("testuser@example.com", "textpassword")
@@ -125,13 +132,16 @@ func TestPasswordAlgoMatching(t *testing.T) {
 }
 
 func TestIUserState(t *testing.T) {
-	userstate := NewUserStateSimple()
+	//userstate := NewUserStateSimple() // for localhost
+	userstate := NewUserState("travis:@127.0.0.1/", true) // for travis-ci
+
 	// Check that the userstate qualifies for the IUserState interface
 	var _ db.IUserState = userstate
 }
 
 func TestHostPassword(t *testing.T) {
-	userstate := NewUserState(":@localhost/", true)
+	//userstate := NewUserStateSimple() // for localhost
+	userstate := NewUserState("travis:@127.0.0.1/", true) // for travis-ci
 
 	userstate.AddUser("bob", "hunter1", "bob@zombo.com")
 	if !userstate.HasUser("bob") {
