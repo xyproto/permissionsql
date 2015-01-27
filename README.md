@@ -1,5 +1,4 @@
-# WORK IN PROGRESS
-# currently the tests fail!
+# Work in progress. Tests currently fail.
 
 #PermissionSQL [![Build Status](https://travis-ci.org/xyproto/permissionsql.svg?branch=master)](https://travis-ci.org/xyproto/permissionsql) [![GoDoc](https://godoc.org/github.com/xyproto/permissionsql?status.svg)](http://godoc.org/github.com/xyproto/permissionsql)
 
