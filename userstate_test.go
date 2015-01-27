@@ -7,7 +7,7 @@ import (
 )
 
 func TestPerm(t *testing.T) {
-	db.Verbose = true
+	//db.Verbose = true
 
 	userstate := NewUserStateSimple()
 
@@ -73,6 +73,7 @@ func TestPasswordBackward(t *testing.T) {
 	userstate.SetPasswordAlgo("sha256")
 	if !userstate.CorrectPassword("bob", "hunter1") {
 		t.Error("Error, the sha256 password really is correct")
+		panic("NOOO")
 	}
 
 	userstate.SetPasswordAlgo("bcrypt")
