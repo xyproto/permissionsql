@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/go-martini/martini"
-	"github.com/xyproto/permissions2"
+	"github.com/xyproto/permissionsql"
 )
 
 func main() {
