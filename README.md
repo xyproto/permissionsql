@@ -2,13 +2,7 @@
 
 Middleware for keeping track of users, login states and permissions.
 
-Uses MariaDB/MySQL as a backend. For using Redis as a backend instead (recommended), look into [permissions2](https://github.com/xyproto/permissions2).
-
-Online API Documentation
-------------------------
-
-[godoc.org](http://godoc.org/github.com/xyproto/permissionsql)
-
+Uses MariaDB/MySQL as a backend. For using [Redis](http://redis.io) as a backend instead, look into [permissions2](https://github.com/xyproto/permissions2).
 
 Background
 ----------
@@ -469,6 +463,11 @@ Coding style
 
 * log.Fatal or panic shall only be used for problems that may occur when starting the application, like not being able to connect to the database. The rest of the functions should return errors instead, so that they can be handled.
 * The code shall always be formatted with `go fmt`.
+
+Online API Documentation
+------------------------
+
+[godoc.org](http://godoc.org/github.com/xyproto/permissionsql)
 
 General information
 -------------------
