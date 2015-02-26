@@ -15,11 +15,11 @@ Background
 
 There were a feature request for [permissions2](https://github.com/xyproto/permissions2) for adding MySQL support.
 
+At first I tried combining the code for Redis database access and SQL database access in the [simpleredis](https://github.com/xyproto/simpleredis) package. I tried interfaces and all sorts of trickery and refactoring, but the result was insatisfactory, because Redis and SQL databases are too different. However, creating a MariaDB/MySQL version of [simpleredis](https://github.com/xyproto/simpleredis) called [db](https://github.com/xyproto/db) worked out nicely. The [db](https://github.com/xyproto/db) package tries to address the shortcomings of handling UTF-8 strings in MariaDB/MySQL and provide the same functions and behavior as [simpleredis](https://github.com/xyproto/simpleredis), but not necessarily with the same performance.
+
+I recommend using Redis and [permissions2](https://github.com/xyproto/permissions2) instead of this package, if possible.
+
 For the record, I prefer PostgreSQL over MariaDB/MySQL.
-
-At first I tried combining the code for Redis database access and SQL database access in the [simpleredis](https://github.com/xyproto/simpleredis) package. I tried interfaces and all sorts of trickery and refactoring, but the result was insatisfactory, because Redis and SQL databases are too different. Creating a MariaDB/MySQL version of [simpleredis](https://github.com/xyproto/simpleredis) called [db](https://github.com/xyproto/db) worked out nicely. The [db](https://github.com/xyproto/db) package tries to address the shortcomings of handling UTF-8 strings in MariaDB/MySQL and provide the same functions and behavior as [simpleredis](https://github.com/xyproto/simpleredis), but not necessarily with the same performance as for the Redis equivalent.
-
-I recommend using Redis and [permissions2](https://github.com/xyproto/permissions2) instead of this package and any SQL database, if at all possible.
 
 
 Features and limitations
