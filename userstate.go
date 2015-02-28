@@ -42,6 +42,50 @@ func NewUserStateSimple() *UserState {
 // Create a new *UserState that can be used for managing users.
 // connectionString may be on the form "username:password@host:port/database".
 // If randomseed is true, the random number generator will be seeded after generating the cookie secret (true is a good default value).
+func NewUserStateWithDSN(connectionString string, database_name string, randomseed bool) *UserState {
+	// Test connection
+	if err := db.TestConnectionHostWithDSN(connectionString); err != nil {
+		log.Fatalln(err.Error())
+	}
+
+	host := db.NewHostWithDSN(connectionString, database_name)
+
+	state := new(UserState)
+
+	state.users = db.NewHashMap(host, "users")
+	state.usernames = db.NewSet(host, "usernames")
+	state.unconfirmed = db.NewSet(host, "unconfirmed")
+
+	state.host = host
+
+	// For the secure cookies
+	// This must happen before the random seeding, or
+	// else people will have to log in again after every server restart
+	state.cookieSecret = permissions.RandomCookieFriendlyString(30)
+
+	// Seed the random number generator
+	if randomseed {
+		rand.Seed(time.Now().UnixNano())
+	}
+
+	// Cookies lasts for 24 hours by default. Specified in seconds.
+	state.cookieTime = 3600 * 24
+
+	// Default password hashing algorithm is "bcrypt+", which is the same as
+	// "bcrypt", but with backwards compatibility for checking sha256 hashes.
+	state.passwordAlgorithm = "bcrypt+" // "bcrypt+", "bcrypt" or "sha256"
+
+	if err := host.Ping(); err != nil {
+		defer host.Close()
+		log.Fatalf("Error when pinging %s: %s\n", connectionString, err.Error())
+	}
+
+	return state
+}
+
+// Create a new *UserState that can be used for managing users.
+// connectionString may be on the form "username:password@host:port/database".
+// If randomseed is true, the random number generator will be seeded after generating the cookie secret (true is a good default value).
 func NewUserState(connectionString string, randomseed bool) *UserState {
 	// Test connection
 	if err := db.TestConnectionHost(connectionString); err != nil {
