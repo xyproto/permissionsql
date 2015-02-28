@@ -3,7 +3,7 @@ package permissions
 import (
 	"testing"
 
-	"github.com/xyproto/db"
+	"github.com/vgoltv/db"
 )
 
 const connectionString = "travis:@127.0.0.1/" // for Travis-CI

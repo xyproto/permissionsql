@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/xyproto/db"           // MariaDB/MySQL database wrapper
+	"github.com/vgoltv/db"            // MariaDB/MySQL database wrapper
 	"github.com/xyproto/permissions2" // For cookies
 )
 
