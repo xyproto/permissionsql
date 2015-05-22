@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/xyproto/permissions2" // For cookies
-	"github.com/xyproto/pinterface"   // Interfaces
+	"github.com/xyproto/pinterface"   // For interfaces
 	"github.com/xyproto/simplemaria"  // MariaDB/MySQL database wrapper
 )
 
@@ -22,13 +22,13 @@ var (
 )
 
 type UserState struct {
-	users             *db.HashMap      // Hash map of users, with several different fields per user ("loggedin", "confirmed", "email" etc)
-	usernames         *db.Set          // A list of all usernames, for easy enumeration
-	unconfirmed       *db.Set          // A list of unconfirmed usernames, for easy enumeration
-	host              pinterface.IHost // A database host
-	cookieSecret      string           // Secret for storing secure cookies
-	cookieTime        int64            // How long a cookie should last, in seconds
-	passwordAlgorithm string           // The hashing algorithm to utilize default: "bcrypt+" allowed: ("sha256", "bcrypt", "bcrypt+")
+	users             *db.HashMap // Hash map of users, with several different fields per user ("loggedin", "confirmed", "email" etc)
+	usernames         *db.Set     // A list of all usernames, for easy enumeration
+	unconfirmed       *db.Set     // A list of unconfirmed usernames, for easy enumeration
+	host              *db.Host    // A database host
+	cookieSecret      string      // Secret for storing secure cookies
+	cookieTime        int64       // How long a cookie should last, in seconds
+	passwordAlgorithm string      // The hashing algorithm to utilize default: "bcrypt+" allowed: ("sha256", "bcrypt", "bcrypt+")
 }
 
 // Create a new *UserState that can be used for managing users.
@@ -522,4 +522,9 @@ NEXT:
 		return errors.New("Username and password must be different, try another password.")
 	}
 	return nil
+}
+
+// Return a struct for creating datastructures
+func (state *UserState) Creator() pinterface.ICreator {
+	return db.NewCreator(state.host)
 }
