@@ -6,8 +6,10 @@ import (
 	"github.com/xyproto/db"
 )
 
-const connectionString = "travis:@127.0.0.1/" // for Travis-CI
-//const connectionString = "username:password@host:port/database"
+const (
+	// "username:password@host:port/database"
+	connectionString = "travis:@127.0.0.1/" // for Travis-CI
+)
 
 func TestPerm(t *testing.T) {
 	//db.Verbose = true
@@ -64,7 +66,6 @@ func TestPasswordBasic(t *testing.T) {
 	if userstate.PasswordAlgo() != "sha256" {
 		t.Error("Error, setting password algorithm failed")
 	}
-
 }
 
 // Check if the functionality for backwards compatible hashing works

@@ -298,9 +298,16 @@ func (state *UserState) SetLoggedOut(username string) {
 }
 
 // Convenience function for logging a user in and storing the username in a cookie.
-func (state *UserState) Login(w http.ResponseWriter, username string) {
+// Returns an error if the cookie could not be set.
+func (state *UserState) Login(w http.ResponseWriter, username string) error {
 	state.SetLoggedIn(username)
-	state.SetUsernameCookie(w, username)
+	return state.SetUsernameCookie(w, username)
+}
+
+// Try to clear the user cookie by setting it to expired.
+// Some browsers *may* be configured to keep cookies even after this.
+func (state *UserState) ClearCookie(w http.ResponseWriter) {
+	permissions.ClearCookie(w, "user", "/")
 }
 
 // Convenience function for logging a user out.
