@@ -18,7 +18,7 @@ type Permissions struct {
 
 const (
 	// Version number. Stable API within major version numbers.
-	Version = 1.0
+	Version = 1.1
 )
 
 // Initialize a Permissions struct with all the default settings.
