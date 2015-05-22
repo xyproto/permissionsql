@@ -3,7 +3,7 @@ package permissions
 import (
 	"testing"
 
-	"github.com/xyproto/db"
+	"github.com/xyproto/pinterface"
 )
 
 const (
@@ -140,7 +140,7 @@ func TestIUserState(t *testing.T) {
 	userstate := NewUserState(connectionString, true)
 
 	// Check that the userstate qualifies for the IUserState interface
-	var _ db.IUserState = userstate
+	var _ pinterface.IUserState = userstate
 }
 
 func TestHostPassword(t *testing.T) {
