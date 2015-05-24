@@ -1,4 +1,4 @@
-package permissions
+package permissionsql
 
 import (
 	"testing"

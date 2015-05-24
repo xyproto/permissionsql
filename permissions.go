@@ -1,5 +1,5 @@
 // Middleware for keeping track of users, login states and permissions.
-package permissions
+package permissionsql
 
 import (
 	"github.com/xyproto/pinterface"
@@ -19,7 +19,7 @@ type Permissions struct {
 
 const (
 	// Version number. Stable API within major version numbers.
-	Version = 1.1
+	Version = 2.0
 )
 
 // Initialize a Permissions struct with all the default settings.
