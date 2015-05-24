@@ -48,7 +48,7 @@ func main() {
 	n := negroni.Classic()
 	mux := http.NewServeMux()
 
-	// New permissions middleware
+	// New permissionsql middleware
 	perm := permissions.New()
 
 	// Blank slate, no default permissions
@@ -113,7 +113,7 @@ func main() {
 		http.Error(w, "Permission denied!", http.StatusForbidden)
 	})
 
-	// Enable the permissions middleware
+	// Enable the permissionsql middleware
 	n.Use(perm)
 
 	// Use mux for routing, this goes last
@@ -141,7 +141,7 @@ import (
 func main() {
 	m := martini.Classic()
 
-	// New permissions middleware
+	// New permissionsql middleware
 	perm := permissions.New()
 
 	// Blank slate, no default permissions
@@ -214,7 +214,7 @@ func main() {
 		c.Next()
 	}
 
-	// Enable the permissions middleware
+	// Enable the permissionsql middleware
 	m.Use(permissionHandler)
 
 	// Serve
@@ -239,7 +239,7 @@ import (
 func main() {
 	g := gin.New()
 
-	// New permissions middleware
+	// New permissionsql middleware
 	perm := permissions.New()
 
 	// Blank slate, no default permissions
@@ -261,7 +261,7 @@ func main() {
 	// Logging middleware
 	g.Use(gin.Logger())
 
-	// Enable the permissions middleware, must come before recovery
+	// Enable the permissionsql middleware, must come before recovery
 	g.Use(permissionHandler)
 
 	// Recovery middleware
@@ -346,7 +346,7 @@ import (
 func main() {
 	m := macaron.Classic()
 
-	// New permissions middleware
+	// New permissionsql middleware
 	perm := permissions.New()
 
 	// Blank slate, no default permissions
@@ -372,7 +372,7 @@ func main() {
 		ctx.Next()
 	}
 
-	// Enable the permissions middleware, must come before recovery
+	// Enable the permissionsql middleware, must come before recovery
 	m.Use(permissionHandler)
 
 	// Recovery middleware
@@ -472,7 +472,7 @@ Online API Documentation
 General information
 -------------------
 
-* Version: 1.2
+* Version: 2.0
 * License: MIT
 * Alexander F Rødseth
 
