@@ -472,7 +472,7 @@ Online API Documentation
 General information
 -------------------
 
-* Version: 1.1
+* Version: 1.2
 * License: MIT
 * Alexander F Rødseth
 
