@@ -8,5 +8,5 @@ import (
 
 func TestInterface(t *testing.T) {
 	// Check that the value qualifies for the interface
-	var _ pinterface.IPermissions = New()
+	var _ pinterface.IPermissions = NewWithConf(connectionString)
 }
