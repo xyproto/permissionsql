@@ -33,6 +33,11 @@ func NewWithConf(connectionString string) *Permissions {
 	return NewPermissions(NewUserState(connectionString, true))
 }
 
+// Initialize a Permissions struct with a dsn
+func NewWithDSN(connectionString string, database_name string) *Permissions {
+	return NewPermissions(NewUserStateWithDSN(connectionString, database_name, true))
+}
+
 // Initialize a Permissions struct with the given UserState and
 // a few default paths for admin/user/public path prefixes.
 func NewPermissions(state *UserState) *Permissions {
