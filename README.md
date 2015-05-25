@@ -49,7 +49,7 @@ func main() {
 	mux := http.NewServeMux()
 
 	// New permissionsql middleware
-	perm := permissions.New()
+	perm := permissionsql.New()
 
 	// Blank slate, no default permissions
 	//perm.Clear()
@@ -142,7 +142,7 @@ func main() {
 	m := martini.Classic()
 
 	// New permissionsql middleware
-	perm := permissions.New()
+	perm := permissionsql.New()
 
 	// Blank slate, no default permissions
 	//perm.Clear()
@@ -240,7 +240,7 @@ func main() {
 	g := gin.New()
 
 	// New permissionsql middleware
-	perm := permissions.New()
+	perm := permissionsql.New()
 
 	// Blank slate, no default permissions
 	//perm.Clear()
@@ -347,7 +347,7 @@ func main() {
 	m := macaron.Classic()
 
 	// New permissionsql middleware
-	perm := permissions.New()
+	perm := permissionsql.New()
 
 	// Blank slate, no default permissions
 	//perm.Clear()
