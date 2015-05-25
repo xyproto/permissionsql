@@ -9,7 +9,7 @@ import (
 
 	"github.com/xyproto/cookie"      // For cookies
 	"github.com/xyproto/pinterface"  // For interfaces
-	"github.com/xyproto/simplemaria" // MariaDB/MySQL database wrapper
+	db "github.com/xyproto/simplemaria" // MariaDB/MySQL database wrapper
 )
 
 const (
