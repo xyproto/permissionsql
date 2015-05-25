@@ -13,7 +13,7 @@ func main() {
 	m := macaron.Classic()
 
 	// New permissions middleware
-	perm := permissions.New()
+	perm := permissionsql.New()
 
 	// Blank slate, no default permissions
 	//perm.Clear()
