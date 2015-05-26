@@ -15,7 +15,11 @@ func TestPerm(t *testing.T) {
 	//db.Verbose = true
 
 	//userstate := NewUserStateSimple() // for localhost
-	userstate := NewUserState(connectionString, true)
+	userstate, err := NewUserState(connectionString, true)
+	if err != nil {
+		t.Error(err)
+		return
+	}
 
 	userstate.AddUser("bob", "hunter1", "bob@zombo.com")
 
@@ -52,7 +56,11 @@ func TestPerm(t *testing.T) {
 
 func TestPasswordBasic(t *testing.T) {
 	//userstate := NewUserStateSimple() // for localhost
-	userstate := NewUserState(connectionString, true)
+	userstate, err := NewUserState(connectionString, true)
+	if err != nil {
+		t.Error(err)
+		return
+	}
 
 	// Assert that the default password algorithm is "bcrypt+"
 	if userstate.PasswordAlgo() != "bcrypt+" {
@@ -71,7 +79,11 @@ func TestPasswordBasic(t *testing.T) {
 // Check if the functionality for backwards compatible hashing works
 func TestPasswordBackward(t *testing.T) {
 	//userstate := NewUserStateSimple() // for localhost
-	userstate := NewUserState(connectionString, true)
+	userstate, err := NewUserState(connectionString, true)
+	if err != nil {
+		t.Error(err)
+		return
+	}
 
 	userstate.SetPasswordAlgo("sha256")
 	userstate.AddUser("bob", "hunter1", "bob@zombo.com")
@@ -99,7 +111,11 @@ func TestPasswordBackward(t *testing.T) {
 // Check if the functionality for backwards compatible hashing works
 func TestPasswordNotBackward(t *testing.T) {
 	//userstate := NewUserStateSimple() // for localhost
-	userstate := NewUserState(connectionString, true)
+	userstate, err := NewUserState(connectionString, true)
+	if err != nil {
+		t.Error(err)
+		return
+	}
 
 	userstate.SetPasswordAlgo("bcrypt")
 	userstate.AddUser("bob", "hunter1", "bob@zombo.com")
@@ -121,7 +137,11 @@ func TestPasswordNotBackward(t *testing.T) {
 
 func TestPasswordAlgoMatching(t *testing.T) {
 	//userstate := NewUserStateSimple() // for localhost
-	userstate := NewUserState(connectionString, true)
+	userstate, err := NewUserState(connectionString, true)
+	if err != nil {
+		t.Error(err)
+		return
+	}
 
 	// generate two different password using the same credentials but different algos
 	userstate.SetPasswordAlgo("sha256")
@@ -137,7 +157,11 @@ func TestPasswordAlgoMatching(t *testing.T) {
 
 func TestIUserState(t *testing.T) {
 	//userstate := NewUserStateSimple() // for localhost
-	userstate := NewUserState(connectionString, true)
+	userstate, err := NewUserState(connectionString, true)
+	if err != nil {
+		t.Error(err)
+		return
+	}
 
 	// Check that the userstate qualifies for the IUserState interface
 	var _ pinterface.IUserState = userstate
@@ -145,7 +169,11 @@ func TestIUserState(t *testing.T) {
 
 func TestHostPassword(t *testing.T) {
 	//userstate := NewUserStateSimple() // for localhost
-	userstate := NewUserState(connectionString, true)
+	userstate, err := NewUserState(connectionString, true)
+	if err != nil {
+		t.Error(err)
+		return
+	}
 
 	userstate.AddUser("bob", "hunter1", "bob@zombo.com")
 	if !userstate.HasUser("bob") {

@@ -24,18 +24,30 @@ const (
 
 // Initialize a Permissions struct with all the default settings.
 // This will also connect to the database host at port 3306.
-func New() *Permissions {
-	return NewPermissions(NewUserStateSimple())
+func New() (*Permissions, error) {
+	state, err := NewUserStateSimple()
+	if err != nil {
+		return nil, err
+	}
+	return NewPermissions(state), nil
 }
 
 // Initialize a Permissions struct with a database connection string
-func NewWithConf(connectionString string) *Permissions {
-	return NewPermissions(NewUserState(connectionString, true))
+func NewWithConf(connectionString string) (*Permissions, error) {
+	state, err := NewUserState(connectionString, true)
+	if err != nil {
+		return nil, err
+	}
+	return NewPermissions(state), nil
 }
 
 // Initialize a Permissions struct with a dsn
-func NewWithDSN(connectionString string, database_name string) *Permissions {
-	return NewPermissions(NewUserStateWithDSN(connectionString, database_name, true))
+func NewWithDSN(connectionString string, database_name string) (*Permissions, error) {
+	state, err := NewUserStateWithDSN(connectionString, database_name, true)
+	if err != nil {
+		return nil, err
+	}
+	return NewPermissions(state), nil
 }
 
 // Initialize a Permissions struct with the given UserState and
