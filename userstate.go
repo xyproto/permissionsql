@@ -2,7 +2,7 @@ package permissionsql
 
 import (
 	"errors"
-	"log"
+	"fmt"
 	"math/rand"
 	"net/http"
 	"time"
@@ -34,7 +34,7 @@ type UserState struct {
 // Create a new *UserState that can be used for managing users.
 // The random number generator will be seeded after generating the cookie secret.
 // A Host* for the local MariaDB/MySQL server will be created.
-func NewUserStateSimple() *UserState {
+func NewUserStateSimple() (*UserState, error) {
 	// connection string | initialize random generator after generating the cookie secret
 	return NewUserState(defaultConnectionString, true)
 }
@@ -42,19 +42,29 @@ func NewUserStateSimple() *UserState {
 // Create a new *UserState that can be used for managing users.
 // connectionString may be on the form "username:password@host:port/database".
 // If randomseed is true, the random number generator will be seeded after generating the cookie secret (true is a good default value).
-func NewUserStateWithDSN(connectionString string, database_name string, randomseed bool) *UserState {
+func NewUserStateWithDSN(connectionString string, database_name string, randomseed bool) (*UserState, error) {
 	// Test connection
 	if err := db.TestConnectionHostWithDSN(connectionString); err != nil {
-		log.Fatalln(err.Error())
+		return nil, err
 	}
 
 	host := db.NewHostWithDSN(connectionString, database_name)
 
 	state := new(UserState)
 
-	state.users = db.NewHashMap(host, "users")
-	state.usernames = db.NewSet(host, "usernames")
-	state.unconfirmed = db.NewSet(host, "unconfirmed")
+	var err error
+	state.users, err = db.NewHashMap(host, "users")
+	if err != nil {
+		return nil, err
+	}
+	state.usernames, err = db.NewSet(host, "usernames")
+	if err != nil {
+		return nil, err
+	}
+	state.unconfirmed, err = db.NewSet(host, "unconfirmed")
+	if err != nil {
+		return nil, err
+	}
 
 	state.host = host
 
@@ -77,28 +87,38 @@ func NewUserStateWithDSN(connectionString string, database_name string, randomse
 
 	if err := host.Ping(); err != nil {
 		defer host.Close()
-		log.Fatalf("Error when pinging %s: %s\n", connectionString, err.Error())
+		return nil, errors.New(fmt.Sprintf("Error when pinging %s: %s\n", connectionString, err.Error()))
 	}
 
-	return state
+	return state, nil
 }
 
 // Create a new *UserState that can be used for managing users.
 // connectionString may be on the form "username:password@host:port/database".
 // If randomseed is true, the random number generator will be seeded after generating the cookie secret (true is a good default value).
-func NewUserState(connectionString string, randomseed bool) *UserState {
+func NewUserState(connectionString string, randomseed bool) (*UserState, error) {
 	// Test connection
 	if err := db.TestConnectionHost(connectionString); err != nil {
-		log.Fatalln(err.Error())
+		return nil, err
 	}
 
 	host := db.NewHost(connectionString)
 
 	state := new(UserState)
 
-	state.users = db.NewHashMap(host, "users")
-	state.usernames = db.NewSet(host, "usernames")
-	state.unconfirmed = db.NewSet(host, "unconfirmed")
+	var err error
+	state.users, err = db.NewHashMap(host, "users")
+	if err != nil {
+		return nil, err
+	}
+	state.usernames, err = db.NewSet(host, "usernames")
+	if err != nil {
+		return nil, err
+	}
+	state.unconfirmed, err = db.NewSet(host, "unconfirmed")
+	if err != nil {
+		return nil, err
+	}
 
 	state.host = host
 
@@ -121,10 +141,10 @@ func NewUserState(connectionString string, randomseed bool) *UserState {
 
 	if err := host.Ping(); err != nil {
 		defer host.Close()
-		log.Fatalf("Error when pinging %s: %s\n", connectionString, err.Error())
+		return nil, errors.New(fmt.Sprintf("Error when pinging %s: %s\n", connectionString, err.Error()))
 	}
 
-	return state
+	return state, nil
 }
 
 // Get the database host
