@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 
@@ -13,7 +14,10 @@ func main() {
 	g := gin.New()
 
 	// New permissions middleware
-	perm := permissionsql.New()
+	perm, err := permissionsql.New()
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	// Blank slate, no default permissions
 	//perm.Clear()
