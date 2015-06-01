@@ -4,7 +4,7 @@ Middleware for keeping track of users, login states and permissions.
 
 Uses MariaDB/MySQL as a backend.
 
-For using a different MySQL/MariaDB database than one running at `localhost`, use the `NewWithDSN` function instead of `New`.
+For using a different MySQL/MariaDB database than one running at *localhost*, use the `NewWithDSN` function instead of `New`.
 
 
 Background
