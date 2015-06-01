@@ -4,7 +4,7 @@ Middleware for keeping track of users, login states and permissions.
 
 Uses MariaDB/MySQL as a backend. For using [Redis](http://redis.io) as a backend instead, look into [permissions2](https://github.com/xyproto/permissions2).
 
-The `NewWithDSN` functoin can be used instead of the `New` function using a given MySQL/MariaDB database instead of the one running at `localhost`.
+For using a different MySQL/MariaDB database than one running at `localhost`, use the `NewWithDSN` function instead of `New`.
 
 
 Background
