@@ -10,7 +10,7 @@ For using a different MySQL/MariaDB database than one running at *localhost*, us
 Background
 ----------
 
-There were a feature request for [permissions2](https://github.com/xyproto/permissions2) for adding MySQL support.
+There was a feature request for [permissions2](https://github.com/xyproto/permissions2) for adding MySQL support.
 
 At first I tried combining the code for Redis database access and SQL database access in the [simpleredis](https://github.com/xyproto/simpleredis) package. I tried interfaces and all sorts of trickery and refactoring, but the result was unsatisfactory, because Redis and SQL databases are so different. However, creating a MariaDB/MySQL version of [simpleredis](https://github.com/xyproto/simpleredis) called [simplemaria](https://github.com/xyproto/simplemaria) worked out nicely. The [simplemaria](https://github.com/xyproto/simplemaria) package tries to address the shortcomings of handling UTF-8 strings in MariaDB/MySQL and provide the same functions and behavior as [simpleredis](https://github.com/xyproto/simpleredis), but not with the same performance characteristics.
 
