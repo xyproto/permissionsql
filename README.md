@@ -4,7 +4,11 @@ Middleware for keeping track of users, login states and permissions.
 
 Uses MariaDB/MySQL as a backend.
 
-For using a different MySQL/MariaDB database than one running at *localhost*, use the `NewWithDSN` function instead of `New`.
+
+Connecting
+----------
+
+For connecting to a MySQL/MariaDB host that is running locally, the `New` function can be used. For connecting to a remote server, the `NewWithDSN` function can be used.
 
 
 Background
@@ -22,7 +26,7 @@ A PostgreSQL port of [simplemaria](https://github.com/xyproto/simplemaria) and [
 Features and limitations
 ------------------------
 
-* Uses secure cookies and stores user information in a MariaDB/MySQL database. 
+* Uses secure cookies and stores user information in a MariaDB/MySQL database.
 * Suitable for running a local MariaDB/MySQL server, registering/confirming users and managing public/user/admin pages.
 * Also supports connecting to remote MariaDB/MySQL servers.
 * Supports registration and confirmation via generated confirmation codes.
@@ -55,7 +59,7 @@ func main() {
 	// New permissionsql middleware
 	perm, err := permissionsql.New()
 	if err != nil {
-	    log.Fatalln(err)
+		log.Fatalln(err)
 	}
 
 	// Blank slate, no default permissions
@@ -152,7 +156,7 @@ func main() {
 	// New permissionsql middleware
 	perm, err := permissionsql.New()
 	if err != nil {
-	    log.Fatalln(err)
+		log.Fatalln(err)
 	}
 
 	// Blank slate, no default permissions
@@ -254,7 +258,7 @@ func main() {
 	// New permissionsql middleware
 	perm, err := permissionsql.New()
 	if err != nil {
-	    log.Fatalln(err)
+		log.Fatalln(err)
 	}
 
 	// Blank slate, no default permissions
@@ -365,7 +369,7 @@ func main() {
 	// New permissionsql middleware
 	perm, err := permissionsql.New()
 	if err != nil {
-	    log.Fatalln(err)
+		log.Fatalln(err)
 	}
 
 	// Blank slate, no default permissions
@@ -467,7 +471,7 @@ Default permissions
 * These path prefixes has user rights by default: */repo* and */data*
 * These path prefixes are public by default: */*, */login*, */register*, */style*, */img*, */js*, */favicon.ico*, */robots.txt* and */sitemap_index.xml*
 
-The default permissions can be cleared with the Clear() function.
+The default permissions can be cleared with the `Clear()` function.
 
 
 Password hashing
@@ -480,7 +484,6 @@ Password hashing
 Coding style
 ------------
 
-* log.Fatal or panic shall only be used for problems that may occur when starting the application, like not being able to connect to the database. The rest of the functions should return errors instead, so that they can be handled.
 * The code shall always be formatted with `go fmt`.
 
 Online API Documentation
