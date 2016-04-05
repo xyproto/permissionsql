@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/xyproto/cookie"      // For cookies
-	"github.com/xyproto/pinterface"  // For interfaces
+	"github.com/xyproto/cookie"         // For cookies
+	"github.com/xyproto/pinterface"     // For interfaces
 	db "github.com/xyproto/simplemaria" // MariaDB/MySQL database wrapper
 )
 
@@ -71,7 +71,7 @@ func NewUserStateWithDSN(connectionString string, database_name string, randomse
 	// For the secure cookies
 	// This must happen before the random seeding, or
 	// else people will have to log in again after every server restart
-	state.cookieSecret = permissions.RandomCookieFriendlyString(30)
+	state.cookieSecret = cookie.RandomCookieFriendlyString(30)
 
 	// Seed the random number generator
 	if randomseed {

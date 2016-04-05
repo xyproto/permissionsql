@@ -1,4 +1,4 @@
-package permissions
+package permissionsql
 
 import (
 	"testing"
@@ -74,7 +74,6 @@ func TestPasswordBasic(t *testing.T) {
 	if userstate.PasswordAlgo() != "sha256" {
 		t.Error("Error, setting password algorithm failed")
 	}
-
 }
 
 // Check if the functionality for backwards compatible hashing works
