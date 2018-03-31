@@ -4,6 +4,11 @@ Middleware for keeping track of users, login states and permissions.
 
 Uses MariaDB/MySQL for the backend.
 
+Online API Documentation
+------------------------
+
+[godoc.org](http://godoc.org/github.com/xyproto/permissionsql)
+
 
 Connecting
 ----------
@@ -604,6 +609,9 @@ Default permissions
 
 The default permissions can be cleared with the `Clear()` function.
 
+## Coding style
+
+* The code shall always be formatted with `go fmt`.
 
 Password hashing
 ----------------
@@ -612,10 +620,37 @@ Password hashing
 * By default, all new password will be hashed with bcrypt.
 * For backwards compatibility, old password hashes with the length of a sha256 hash will be checked with sha256. To disable this behavior, and only ever use bcrypt, add this line: `userstate.SetPasswordAlgo("bcrypt")`
 
-Online API Documentation
-------------------------
+## Setting and getting properties for users
 
-[godoc.org](http://godoc.org/github.com/xyproto/permissionsql)
+* Setting a property:
+
+```
+username := "bob"
+propertyName := "clever"
+propertyValue := "yes"
+
+userstate.Users().Set(username, propertyName, propertyValue)
+```
+
+* Getting a property:
+
+```
+username := "bob"
+propertyName := "clever"
+propertyValue, err := userstate.Users().Get(username, propertyName)
+if err != nil {
+	log.Print(err)
+	return err
+}
+fmt.Printf("%s is %s: %s\n", username, propertyName, propertyValue)
+```
+
+## Passing userstate between functions, files and to other Go packages
+
+Using the `*pinterface.IUserState` type (from the [pinterface](https://github.com/xyproto/pinterface) package) makes it possible to pass UserState structs between functions, also in other packages. By using this interface, it is possible to seamlessly change the database backend from, for instance, PostgreSQL ([pstore](https://github.com/xyproto/pstore)) to BoltDB ([permissionbolt](https://github.com/xyproto/permissionbolt)) or Redis ([permissions2](https://github.com/xyproto/permissions2)).
+
+[pstore](https://github.com/xyproto/pstore), [permissionsql](https://github.com/xyproto/permissionsql), [permissionbolt](https://github.com/xyproto/permissionbolt) and [permissions2](https://github.com/xyproto/permissions2) are interchangeable.
+
 
 General information
 -------------------
