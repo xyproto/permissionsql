@@ -40,6 +40,11 @@ Features and limitations
 * Should also work with other frameworks, since the standard http.HandlerFunc is used everywhere.
 * The default permissions can be cleared with the Clear() function.
 
+Go verison
+----------
+
+Requires Go >= 1.7
+
 
 Example for [Negroni](https://github.com/codegangsta/negroni)
 --------------------
