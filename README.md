@@ -2,33 +2,11 @@
 
 Middleware for keeping track of users, login states and permissions.
 
-Uses MariaDB/MySQL for the backend.
-
-Online API Documentation
-------------------------
+## Online API Documentation
 
 [godoc.org](http://godoc.org/github.com/xyproto/permissionsql)
 
-
-Connecting
-----------
-
-For connecting to a MariaDB/MySQL host that is running locally, the `New` function can be used. For connecting to a remote server, the `NewWithDSN` function can be used.
-
-
-Background
-----------
-
-There was a feature request for [permissions2](https://github.com/xyproto/permissions2) for adding MySQL support.
-
-At first I tried combining the code for Redis database access and SQL database access in the [simpleredis](https://github.com/xyproto/simpleredis) package. I tried interfaces and all sorts of trickery and refactoring, but the result was unsatisfactory, because Redis and SQL databases are so different. However, creating a MariaDB/MySQL version of [simpleredis](https://github.com/xyproto/simpleredis) called [simplemaria](https://github.com/xyproto/simplemaria) worked out nicely. The [simplemaria](https://github.com/xyproto/simplemaria) package tries to address the shortcomings of handling UTF-8 strings in MariaDB/MySQL and provide the same functions and behavior as [simpleredis](https://github.com/xyproto/simpleredis), but not with the same performance characteristics.
-
-I recommend using Redis and [permissions2](https://github.com/xyproto/permissions2) instead of this package, if possible. There is also [permissionbolt](https://github.com/xyproto/permissionbolt), which uses Bolt as a database (Bolt is written in Go).
-
-A PostgreSQL port of [simplemaria](https://github.com/xyproto/simplemaria) and [permissionsql](https://github.com/xyproto/permissionsql) that uses HSTORE is available as [simplehstore](https://github.com/xyproto/simplehstore) and [pstore](https://github.com/xyproto/pstore).
-
-Features and limitations
-------------------------
+## Features and limitations
 
 * Uses secure cookies and stores user information in a MariaDB/MySQL database.
 * Suitable for running a local MariaDB/MySQL server, registering/confirming users and managing public/user/admin pages.
@@ -40,214 +18,19 @@ Features and limitations
 * Should also work with other frameworks, since the standard http.HandlerFunc is used everywhere.
 * The default permissions can be cleared with the Clear() function.
 
-Go verison
-----------
+## Connecting
 
-Requires Go >= 1.7
+For connecting to a MariaDB/MySQL host that is running locally, the `New` function can be used. For connecting to a remote server, the `NewWithDSN` function can be used.
 
+## Requirements
 
-Example for [Negroni](https://github.com/codegangsta/negroni)
---------------------
-~~~ go
-package main
+* MariaDB or MySQL
+* Go >= 1.7
 
-import (
-	"fmt"
-	"log"
-	"net/http"
-	"strings"
+## Examples
 
-	"github.com/codegangsta/negroni"
-	"github.com/xyproto/permissionsql"
-)
+### Example for [Gin](https://github.com/gin-gonic/gin)
 
-func main() {
-	n := negroni.Classic()
-	mux := http.NewServeMux()
-
-	// New permissionsql middleware
-	perm, err := permissionsql.New()
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	// Blank slate, no default permissions
-	//perm.Clear()
-
-	// Get the userstate, used in the handlers below
-	userstate := perm.UserState()
-
-	mux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-		fmt.Fprintf(w, "Has user bob: %v\n", userstate.HasUser("bob"))
-		fmt.Fprintf(w, "Logged in on server: %v\n", userstate.IsLoggedIn("bob"))
-		fmt.Fprintf(w, "Is confirmed: %v\n", userstate.IsConfirmed("bob"))
-		fmt.Fprintf(w, "Username stored in cookies (or blank): %v\n", userstate.Username(req))
-		fmt.Fprintf(w, "Current user is logged in, has a valid cookie and *user rights*: %v\n", userstate.UserRights(req))
-		fmt.Fprintf(w, "Current user is logged in, has a valid cookie and *admin rights*: %v\n", userstate.AdminRights(req))
-		fmt.Fprintf(w, "\nTry: /register, /confirm, /remove, /login, /logout, /data, /makeadmin and /admin")
-	})
-
-	mux.HandleFunc("/register", func(w http.ResponseWriter, req *http.Request) {
-		userstate.AddUser("bob", "hunter1", "bob@zombo.com")
-		fmt.Fprintf(w, "User bob was created: %v\n", userstate.HasUser("bob"))
-	})
-
-	mux.HandleFunc("/confirm", func(w http.ResponseWriter, req *http.Request) {
-		userstate.MarkConfirmed("bob")
-		fmt.Fprintf(w, "User bob was confirmed: %v\n", userstate.IsConfirmed("bob"))
-	})
-
-	mux.HandleFunc("/remove", func(w http.ResponseWriter, req *http.Request) {
-		userstate.RemoveUser("bob")
-		fmt.Fprintf(w, "User bob was removed: %v\n", !userstate.HasUser("bob"))
-	})
-
-	mux.HandleFunc("/login", func(w http.ResponseWriter, req *http.Request) {
-		userstate.Login(w, "bob")
-		fmt.Fprintf(w, "bob is now logged in: %v\n", userstate.IsLoggedIn("bob"))
-	})
-
-	mux.HandleFunc("/logout", func(w http.ResponseWriter, req *http.Request) {
-		userstate.Logout("bob")
-		fmt.Fprintf(w, "bob is now logged out: %v\n", !userstate.IsLoggedIn("bob"))
-	})
-
-	mux.HandleFunc("/makeadmin", func(w http.ResponseWriter, req *http.Request) {
-		userstate.SetAdminStatus("bob")
-		fmt.Fprintf(w, "bob is now administrator: %v\n", userstate.IsAdmin("bob"))
-	})
-
-	mux.HandleFunc("/data", func(w http.ResponseWriter, req *http.Request) {
-		fmt.Fprintf(w, "user page that only logged in users must see!")
-	})
-
-	mux.HandleFunc("/admin", func(w http.ResponseWriter, req *http.Request) {
-		fmt.Fprintf(w, "super secret information that only logged in administrators must see!\n\n")
-		if usernames, err := userstate.AllUsernames(); err == nil {
-			fmt.Fprintf(w, "list of all users: "+strings.Join(usernames, ", "))
-		}
-	})
-
-	// Custom handler for when permissions are denied
-	perm.SetDenyFunction(func(w http.ResponseWriter, req *http.Request) {
-		http.Error(w, "Permission denied!", http.StatusForbidden)
-	})
-
-	// Enable the permissionsql middleware
-	n.Use(perm)
-
-	// Use mux for routing, this goes last
-	n.UseHandler(mux)
-
-	// Serve
-	n.Run(":3000")
-}
-~~~
-
-Example for [Martini](https://github.com/go-martini/martini)
---------------------
-~~~ go
-package main
-
-import (
-	"fmt"
-	"log"
-	"net/http"
-	"strings"
-
-	"github.com/go-martini/martini"
-	"github.com/xyproto/permissionsql"
-)
-
-func main() {
-	m := martini.Classic()
-
-	// New permissionsql middleware
-	perm, err := permissionsql.New()
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	// Blank slate, no default permissions
-	//perm.Clear()
-
-	// Get the userstate, used in the handlers below
-	userstate := perm.UserState()
-
-	m.Get("/", func(w http.ResponseWriter, req *http.Request) {
-		fmt.Fprintf(w, "Has user bob: %v\n", userstate.HasUser("bob"))
-		fmt.Fprintf(w, "Logged in on server: %v\n", userstate.IsLoggedIn("bob"))
-		fmt.Fprintf(w, "Is confirmed: %v\n", userstate.IsConfirmed("bob"))
-		fmt.Fprintf(w, "Username stored in cookies (or blank): %v\n", userstate.Username(req))
-		fmt.Fprintf(w, "Current user is logged in, has a valid cookie and *user rights*: %v\n", userstate.UserRights(req))
-		fmt.Fprintf(w, "Current user is logged in, has a valid cookie and *admin rights*: %v\n", userstate.AdminRights(req))
-		fmt.Fprintf(w, "\nTry: /register, /confirm, /remove, /login, /logout, /data, /makeadmin and /admin")
-	})
-
-	m.Get("/register", func(w http.ResponseWriter) {
-		userstate.AddUser("bob", "hunter1", "bob@zombo.com")
-		fmt.Fprintf(w, "User bob was created: %v\n", userstate.HasUser("bob"))
-	})
-
-	m.Get("/confirm", func(w http.ResponseWriter) {
-		userstate.MarkConfirmed("bob")
-		fmt.Fprintf(w, "User bob was confirmed: %v\n", userstate.IsConfirmed("bob"))
-	})
-
-	m.Get("/remove", func(w http.ResponseWriter) {
-		userstate.RemoveUser("bob")
-		fmt.Fprintf(w, "User bob was removed: %v\n", !userstate.HasUser("bob"))
-	})
-
-	m.Get("/login", func(w http.ResponseWriter) {
-		userstate.Login(w, "bob")
-		fmt.Fprintf(w, "bob is now logged in: %v\n", userstate.IsLoggedIn("bob"))
-	})
-
-	m.Get("/logout", func(w http.ResponseWriter) {
-		userstate.Logout("bob")
-		fmt.Fprintf(w, "bob is now logged out: %v\n", !userstate.IsLoggedIn("bob"))
-	})
-
-	m.Get("/makeadmin", func(w http.ResponseWriter) {
-		userstate.SetAdminStatus("bob")
-		fmt.Fprintf(w, "bob is now administrator: %v\n", userstate.IsAdmin("bob"))
-	})
-
-	m.Get("/data", func(w http.ResponseWriter) {
-		fmt.Fprintf(w, "user page that only logged in users must see!")
-	})
-
-	m.Get("/admin", func(w http.ResponseWriter) {
-		fmt.Fprintf(w, "super secret information that only logged in administrators must see!\n\n")
-		if usernames, err := userstate.AllUsernames(); err == nil {
-			fmt.Fprintf(w, "list of all users: "+strings.Join(usernames, ", "))
-		}
-	})
-
-	// Set up a middleware handler for Martini, with a custom "permission denied" message.
-	permissionHandler := func(w http.ResponseWriter, req *http.Request, c martini.Context) {
-		// Check if the user has the right admin/user rights
-		if perm.Rejected(w, req) {
-			// Deny the request
-			http.Error(w, "Permission denied!", http.StatusForbidden)
-			// Reject the request by not calling the next handler below
-			return
-		}
-		// Call the next middleware handler
-		c.Next()
-	}
-
-	// Enable the permissionsql middleware
-	m.Use(permissionHandler)
-
-	// Serve
-	m.Run()
-}
-~~~
-
-Example for [Gin](https://github.com/gin-gonic/gin)
---------------------
 ~~~ go
 package main
 
@@ -306,7 +89,7 @@ func main() {
 		msg += fmt.Sprintf("Username stored in cookies (or blank): %v\n", userstate.Username(c.Request))
 		msg += fmt.Sprintf("Current user is logged in, has a valid cookie and *user rights*: %v\n", userstate.UserRights(c.Request))
 		msg += fmt.Sprintf("Current user is logged in, has a valid cookie and *admin rights*: %v\n", userstate.AdminRights(c.Request))
-		msg += fmt.Sprintln("\nTry: /register, /confirm, /remove, /login, /logout, /data, /makeadmin and /admin")
+		msg += fmt.Sprintln("\nTry: /register, /confirm, /remove, /login, /logout, /makeadmin, /clear, /data and /admin")
 		c.String(http.StatusOK, msg)
 	})
 
@@ -341,6 +124,11 @@ func main() {
 		c.String(http.StatusOK, fmt.Sprintf("bob is now administrator: %v\n", userstate.IsAdmin("bob")))
 	})
 
+	g.GET("/clear", func(c *gin.Context) {
+		userstate.ClearCookie(c.Writer)
+		c.String(http.StatusOK, "Clearing cookie")
+	})
+
 	g.GET("/data", func(c *gin.Context) {
 		c.String(http.StatusOK, "user page that only logged in users must see!")
 	})
@@ -357,8 +145,8 @@ func main() {
 }
 ~~~
 
-Example for [Macaron](https://github.com/Unknwon/macaron)
---------------------
+### Example for just `net/http`
+
 ~~~ go
 package main
 
@@ -367,142 +155,39 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
-	"github.com/Unknwon/macaron"
 	"github.com/xyproto/permissionsql"
+	"github.com/xyproto/pinterface"
 )
 
-func main() {
-	m := macaron.Classic()
+type permissionHandler struct {
+	// perm is a Permissions structure that can be used to deny requests
+	// and acquire the UserState. By using `pinterface.IPermissions` instead
+	// of `*permissions.Permissions`, the code is compatible with not only
+	// `permissions2`, but also other modules that uses other database
+	// backends, like `permissionbolt` which uses Bolt.
+	perm pinterface.IPermissions
 
-	// New permissionsql middleware
-	perm, err := permissionsql.New()
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	// Blank slate, no default permissions
-	//perm.Clear()
-
-	// Logging middleware
-	m.Use(macaron.Logger())
-
-	// Renderer middleware
-	m.Use(macaron.Renderer())
-
-	// Set up a middleware handler for Macaron, with a custom "permission denied" message.
-	permissionHandler := func(ctx *macaron.Context) {
-		// Check if the user has the right admin/user rights
-		if perm.Rejected(ctx.Resp, ctx.Req.Request) {
-			fmt.Fprintf(ctx.Resp, "Permission denied!")
-			// Deny the request
-			ctx.Error(http.StatusForbidden)
-			// Don't call other middleware handlers
-			return
-		}
-		// Call the next middleware handler
-		ctx.Next()
-	}
-
-	// Enable the permissionsql middleware, must come before recovery
-	m.Use(permissionHandler)
-
-	// Recovery middleware
-	m.Use(macaron.Recovery())
-
-	// Get the userstate, used in the handlers below
-	userstate := perm.UserState()
-
-	m.Get("/", func(ctx *macaron.Context) string {
-		msg := ""
-		msg += fmt.Sprintf("Has user bob: %v\n", userstate.HasUser("bob"))
-		msg += fmt.Sprintf("Logged in on server: %v\n", userstate.IsLoggedIn("bob"))
-		msg += fmt.Sprintf("Is confirmed: %v\n", userstate.IsConfirmed("bob"))
-		msg += fmt.Sprintf("Username stored in cookies (or blank): %v\n", userstate.Username(ctx.Req.Request))
-		msg += fmt.Sprintf("Current user is logged in, has a valid cookie and *user rights*: %v\n", userstate.UserRights(ctx.Req.Request))
-		msg += fmt.Sprintf("Current user is logged in, has a valid cookie and *admin rights*: %v\n", userstate.AdminRights(ctx.Req.Request))
-		msg += fmt.Sprintln("\nTry: /register, /confirm, /remove, /login, /logout, /data, /makeadmin and /admin")
-		return msg
-	})
-
-	m.Get("/register", func(ctx *macaron.Context) string {
-		userstate.AddUser("bob", "hunter1", "bob@zombo.com")
-		return fmt.Sprintf("User bob was created: %v\n", userstate.HasUser("bob"))
-	})
-
-	m.Get("/confirm", func(ctx *macaron.Context) string {
-		userstate.MarkConfirmed("bob")
-		return fmt.Sprintf("User bob was confirmed: %v\n", userstate.IsConfirmed("bob"))
-	})
-
-	m.Get("/remove", func(ctx *macaron.Context) string {
-		userstate.RemoveUser("bob")
-		return fmt.Sprintf("User bob was removed: %v\n", !userstate.HasUser("bob"))
-	})
-
-	m.Get("/login", func(ctx *macaron.Context) string {
-		// Headers will be written, for storing a cookie
-		userstate.Login(ctx.Resp, "bob")
-		return fmt.Sprintf("bob is now logged in: %v\n", userstate.IsLoggedIn("bob"))
-	})
-
-	m.Get("/logout", func(ctx *macaron.Context) string {
-		userstate.Logout("bob")
-		return fmt.Sprintf("bob is now logged out: %v\n", !userstate.IsLoggedIn("bob"))
-	})
-
-	m.Get("/makeadmin", func(ctx *macaron.Context) string {
-		userstate.SetAdminStatus("bob")
-		return fmt.Sprintf("bob is now administrator: %v\n", userstate.IsAdmin("bob"))
-	})
-
-	m.Get("/data", func(ctx *macaron.Context) string {
-		return "user page that only logged in users must see!"
-	})
-
-	m.Get("/admin", func(ctx *macaron.Context) {
-		fmt.Fprintf(ctx.Resp, "super secret information that only logged in administrators must see!\n\n")
-		if usernames, err := userstate.AllUsernames(); err == nil {
-			fmt.Fprintf(ctx.Resp, "list of all users: "+strings.Join(usernames, ", "))
-		}
-	})
-
-	// Serve
-	m.Run(3000)
-}
-~~~
-
-Example for [Echo](https://github.com/labstack/echo)
---------------------
-
-~~~ go
-package main
-
-import (
-	"bytes"
-	"fmt"
-	"log"
-	"net/http"
-	"strings"
-
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/engine/standard"
-	"github.com/labstack/echo/middleware"
-	"github.com/xyproto/permissionsql"
-)
-
-// Convenience function for making it easier to get hold of http.ResponseWriter
-func w(c echo.Context) http.ResponseWriter {
-	return c.Response().(*standard.Response).ResponseWriter
+	// The HTTP multiplexer
+	mux *http.ServeMux
 }
 
-// Convenience function for making it easier to get hold of *http.Request
-func req(c echo.Context) *http.Request {
-	return c.Request().(*standard.Request).Request
+// Implement the ServeHTTP method to make a permissionHandler a http.Handler
+func (ph *permissionHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	// Check if the user has the right admin/user rights
+	if ph.perm.Rejected(w, req) {
+		// Let the user know, by calling the custom "permission denied" function
+		ph.perm.DenyFunction()(w, req)
+		// Reject the request
+		return
+	}
+	// Serve the requested page if permissions were granted
+	ph.mux.ServeHTTP(w, req)
 }
 
 func main() {
-	e := echo.New()
+	mux := http.NewServeMux()
 
 	// New permissions middleware
 	perm, err := permissionsql.New()
@@ -513,103 +198,90 @@ func main() {
 	// Blank slate, no default permissions
 	//perm.Clear()
 
-	// Set up a middleware handler for Echo, with a custom "permission denied" message.
-	permissionHandler := echo.MiddlewareFunc(func(next echo.HandlerFunc) echo.HandlerFunc {
-		return echo.HandlerFunc(func(c echo.Context) error {
-			// Check if the user has the right admin/user rights
-			if perm.Rejected(w(c), req(c)) {
-				// Deny the request
-				return echo.NewHTTPError(http.StatusForbidden, "Permission denied!")
-			}
-			// Continue the chain of middleware
-			return next(c)
-		})
-	})
-
-	// Logging middleware
-	e.Use(middleware.Logger())
-
-	// Enable the permissions middleware, must come before recovery
-	e.Use(permissionHandler)
-
-	// Recovery middleware
-	e.Use(middleware.Recover())
-
 	// Get the userstate, used in the handlers below
 	userstate := perm.UserState()
 
-	e.Get("/", echo.HandlerFunc(func(c echo.Context) error {
-		var buf bytes.Buffer
-		b2s := map[bool]string{false: "false", true: "true"}
-		buf.WriteString("Has user bob: " + b2s[userstate.HasUser("bob")] + "\n")
-		buf.WriteString("Logged in on server: " + b2s[userstate.IsLoggedIn("bob")] + "\n")
-		buf.WriteString("Is confirmed: " + b2s[userstate.IsConfirmed("bob")] + "\n")
-		buf.WriteString("Username stored in cookies (or blank): " + userstate.Username(req(c)) + "\n")
-		buf.WriteString("Current user is logged in, has a valid cookie and *user rights*: " + b2s[userstate.UserRights(req(c))] + "\n")
-		buf.WriteString("Current user is logged in, has a valid cookie and *admin rights*: " + b2s[userstate.AdminRights(req(c))] + "\n")
-		buf.WriteString("\nTry: /register, /confirm, /remove, /login, /logout, /makeadmin, /clear, /data and /admin")
-		return c.String(http.StatusOK, buf.String())
-	}))
+	mux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
+		fmt.Fprintf(w, "Has user bob: %v\n", userstate.HasUser("bob"))
+		fmt.Fprintf(w, "Logged in on server: %v\n", userstate.IsLoggedIn("bob"))
+		fmt.Fprintf(w, "Is confirmed: %v\n", userstate.IsConfirmed("bob"))
+		fmt.Fprintf(w, "Username stored in cookies (or blank): %v\n", userstate.Username(req))
+		fmt.Fprintf(w, "Current user is logged in, has a valid cookie and *user rights*: %v\n", userstate.UserRights(req))
+		fmt.Fprintf(w, "Current user is logged in, has a valid cookie and *admin rights*: %v\n", userstate.AdminRights(req))
+		fmt.Fprintf(w, "\nTry: /register, /confirm, /remove, /login, /logout, /makeadmin, /clear, /data and /admin")
+	})
 
-	e.Get("/register", echo.HandlerFunc(func(c echo.Context) error {
+	mux.HandleFunc("/register", func(w http.ResponseWriter, req *http.Request) {
 		userstate.AddUser("bob", "hunter1", "bob@zombo.com")
-		return c.String(http.StatusOK, fmt.Sprintf("User bob was created: %v\n", userstate.HasUser("bob")))
-	}))
+		fmt.Fprintf(w, "User bob was created: %v\n", userstate.HasUser("bob"))
+	})
 
-	e.Get("/confirm", echo.HandlerFunc(func(c echo.Context) error {
+	mux.HandleFunc("/confirm", func(w http.ResponseWriter, req *http.Request) {
 		userstate.MarkConfirmed("bob")
-		return c.String(http.StatusOK, fmt.Sprintf("User bob was confirmed: %v\n", userstate.IsConfirmed("bob")))
-	}))
+		fmt.Fprintf(w, "User bob was confirmed: %v\n", userstate.IsConfirmed("bob"))
+	})
 
-	e.Get("/remove", echo.HandlerFunc(func(c echo.Context) error {
+	mux.HandleFunc("/remove", func(w http.ResponseWriter, req *http.Request) {
 		userstate.RemoveUser("bob")
-		return c.String(http.StatusOK, fmt.Sprintf("User bob was removed: %v\n", !userstate.HasUser("bob")))
-	}))
+		fmt.Fprintf(w, "User bob was removed: %v\n", !userstate.HasUser("bob"))
+	})
 
-	e.Get("/login", echo.HandlerFunc(func(c echo.Context) error {
-		// Headers will be written, for storing a cookie
-		userstate.Login(w(c), "bob")
-		return c.String(http.StatusOK, fmt.Sprintf("bob is now logged in: %v\n", userstate.IsLoggedIn("bob")))
-	}))
+	mux.HandleFunc("/login", func(w http.ResponseWriter, req *http.Request) {
+		userstate.Login(w, "bob")
+		fmt.Fprintf(w, "bob is now logged in: %v\n", userstate.IsLoggedIn("bob"))
+	})
 
-	e.Get("/logout", echo.HandlerFunc(func(c echo.Context) error {
+	mux.HandleFunc("/logout", func(w http.ResponseWriter, req *http.Request) {
 		userstate.Logout("bob")
-		return c.String(http.StatusOK, fmt.Sprintf("bob is now logged out: %v\n", !userstate.IsLoggedIn("bob")))
-	}))
+		fmt.Fprintf(w, "bob is now logged out: %v\n", !userstate.IsLoggedIn("bob"))
+	})
 
-	e.Get("/makeadmin", echo.HandlerFunc(func(c echo.Context) error {
+	mux.HandleFunc("/makeadmin", func(w http.ResponseWriter, req *http.Request) {
 		userstate.SetAdminStatus("bob")
-		return c.String(http.StatusOK, fmt.Sprintf("bob is now administrator: %v\n", userstate.IsAdmin("bob")))
-	}))
+		fmt.Fprintf(w, "bob is now administrator: %v\n", userstate.IsAdmin("bob"))
+	})
 
-	e.Get("/clear", echo.HandlerFunc(func(c echo.Context) error {
-		userstate.ClearCookie(w(c))
-		return c.String(http.StatusOK, "Clearing cookie")
-	}))
+	mux.HandleFunc("/clear", func(w http.ResponseWriter, req *http.Request) {
+		userstate.ClearCookie(w)
+		fmt.Fprintf(w, "Clearing cookie")
+	})
 
-	e.Get("/data", echo.HandlerFunc(func(c echo.Context) error {
-		return c.String(http.StatusOK, "user page that only logged in users must see!")
-	}))
+	mux.HandleFunc("/data", func(w http.ResponseWriter, req *http.Request) {
+		fmt.Fprintf(w, "user page that only logged in users must see!")
+	})
 
-	e.Get("/admin", echo.HandlerFunc(func(c echo.Context) error {
-		var buf bytes.Buffer
-		buf.WriteString("super secret information that only logged in administrators must see!\n\n")
+	mux.HandleFunc("/admin", func(w http.ResponseWriter, req *http.Request) {
+		fmt.Fprintf(w, "super secret information that only logged in administrators must see!\n\n")
 		if usernames, err := userstate.AllUsernames(); err == nil {
-			buf.WriteString("list of all users: " + strings.Join(usernames, ", "))
+			fmt.Fprintf(w, "list of all users: "+strings.Join(usernames, ", "))
 		}
-		return c.String(http.StatusOK, buf.String())
-	}))
+	})
 
-	// Serve
-	e.Run(standard.New(":3000"))
+	// Custom handler for when permissions are denied
+	perm.SetDenyFunction(func(w http.ResponseWriter, req *http.Request) {
+		http.Error(w, "Permission denied!", http.StatusForbidden)
+	})
+
+	// Configure the HTTP server and permissionHandler struct
+	s := &http.Server{
+		Addr:           ":3000",
+		Handler:        &permissionHandler{perm, mux},
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+	}
+
+	log.Println("Listening for requests on port 3000")
+
+	// Start listening
+	log.Fatal(s.ListenAndServe())
 }
 ~~~
 
-Default permissions
--------------------
+## Default permissions
 
-* The */admin* path prefix has admin rights by default.
-* These path prefixes has user rights by default: */repo* and */data*
+* Visiting the */admin* path prefix requires the user to be logged in with admin rights, by default.
+* These path prefixes requires the user to be logged in, by default: */repo* and */data*
 * These path prefixes are public by default: */*, */login*, */register*, */style*, */img*, */js*, */favicon.ico*, */robots.txt* and */sitemap_index.xml*
 
 The default permissions can be cleared with the `Clear()` function.
@@ -618,8 +290,7 @@ The default permissions can be cleared with the `Clear()` function.
 
 * The code shall always be formatted with `go fmt`.
 
-Password hashing
-----------------
+## Password hashing
 
 * bcrypt is used by default for hashing passwords. sha256 is also supported.
 * By default, all new password will be hashed with bcrypt.
@@ -657,9 +328,8 @@ Using the `*pinterface.IUserState` type (from the [pinterface](https://github.co
 [pstore](https://github.com/xyproto/pstore), [permissionsql](https://github.com/xyproto/permissionsql), [permissionbolt](https://github.com/xyproto/permissionbolt) and [permissions2](https://github.com/xyproto/permissions2) are interchangeable.
 
 
-General information
--------------------
+## General information
 
 * Version: 2.0
 * License: MIT
-* Alexander F Rødseth
+* Alexander F Rødseth &lt;xyproto@archlinux.org&gt;

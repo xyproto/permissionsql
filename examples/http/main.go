@@ -5,13 +5,38 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
-	"github.com/codegangsta/negroni"
 	"github.com/xyproto/permissionsql"
+	"github.com/xyproto/pinterface"
 )
 
+type permissionHandler struct {
+	// perm is a Permissions structure that can be used to deny requests
+	// and acquire the UserState. By using `pinterface.IPermissions` instead
+	// of `*permissions.Permissions`, the code is compatible with not only
+	// `permissions2`, but also other modules that uses other database
+	// backends, like `permissionbolt` which uses Bolt.
+	perm pinterface.IPermissions
+
+	// The HTTP multiplexer
+	mux *http.ServeMux
+}
+
+// Implement the ServeHTTP method to make a permissionHandler a http.Handler
+func (ph *permissionHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	// Check if the user has the right admin/user rights
+	if ph.perm.Rejected(w, req) {
+		// Let the user know, by calling the custom "permission denied" function
+		ph.perm.DenyFunction()(w, req)
+		// Reject the request
+		return
+	}
+	// Serve the requested page if permissions were granted
+	ph.mux.ServeHTTP(w, req)
+}
+
 func main() {
-	n := negroni.Classic()
 	mux := http.NewServeMux()
 
 	// New permissions middleware
@@ -33,7 +58,7 @@ func main() {
 		fmt.Fprintf(w, "Username stored in cookies (or blank): %v\n", userstate.Username(req))
 		fmt.Fprintf(w, "Current user is logged in, has a valid cookie and *user rights*: %v\n", userstate.UserRights(req))
 		fmt.Fprintf(w, "Current user is logged in, has a valid cookie and *admin rights*: %v\n", userstate.AdminRights(req))
-		fmt.Fprintf(w, "\nTry: /register, /confirm, /remove, /login, /logout, /data, /makeadmin and /admin")
+		fmt.Fprintf(w, "\nTry: /register, /confirm, /remove, /login, /logout, /makeadmin, /clear, /data and /admin")
 	})
 
 	mux.HandleFunc("/register", func(w http.ResponseWriter, req *http.Request) {
@@ -66,6 +91,11 @@ func main() {
 		fmt.Fprintf(w, "bob is now administrator: %v\n", userstate.IsAdmin("bob"))
 	})
 
+	mux.HandleFunc("/clear", func(w http.ResponseWriter, req *http.Request) {
+		userstate.ClearCookie(w)
+		fmt.Fprintf(w, "Clearing cookie")
+	})
+
 	mux.HandleFunc("/data", func(w http.ResponseWriter, req *http.Request) {
 		fmt.Fprintf(w, "user page that only logged in users must see!")
 	})
@@ -82,12 +112,17 @@ func main() {
 		http.Error(w, "Permission denied!", http.StatusForbidden)
 	})
 
-	// Enable the permissions middleware
-	n.Use(perm)
+	// Configure the HTTP server and permissionHandler struct
+	s := &http.Server{
+		Addr:           ":3000",
+		Handler:        &permissionHandler{perm, mux},
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+	}
 
-	// Use mux for routing, this goes last
-	n.UseHandler(mux)
+	log.Println("Listening for requests on port 3000")
 
-	// Serve
-	n.Run(":3000")
+	// Start listening
+	log.Fatal(s.ListenAndServe())
 }

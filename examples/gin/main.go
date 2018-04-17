@@ -13,7 +13,7 @@ import (
 func main() {
 	g := gin.New()
 
-	// New permissions middleware
+	// New permissionsql middleware
 	perm, err := permissionsql.New()
 	if err != nil {
 		log.Fatalln(err)
@@ -38,7 +38,7 @@ func main() {
 	// Logging middleware
 	g.Use(gin.Logger())
 
-	// Enable the permissions middleware, must come before recovery
+	// Enable the permissionsql middleware, must come before recovery
 	g.Use(permissionHandler)
 
 	// Recovery middleware

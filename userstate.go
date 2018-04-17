@@ -87,7 +87,7 @@ func NewUserStateWithDSN(connectionString string, database_name string, randomse
 
 	if err := host.Ping(); err != nil {
 		defer host.Close()
-		return nil, errors.New(fmt.Sprintf("Error when pinging %s: %s\n", connectionString, err.Error()))
+		return nil, fmt.Errorf("Error when pinging %s: %s\n", connectionString, err.Error())
 	}
 
 	return state, nil
@@ -141,7 +141,7 @@ func NewUserState(connectionString string, randomseed bool) (*UserState, error) 
 
 	if err := host.Ping(); err != nil {
 		defer host.Close()
-		return nil, errors.New(fmt.Sprintf("Error when pinging %s: %s\n", connectionString, err.Error()))
+		return nil, fmt.Errorf("Error when pinging %s: %s\n", connectionString, err.Error())
 	}
 
 	return state, nil
