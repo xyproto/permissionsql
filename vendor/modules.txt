@@ -5,7 +5,7 @@ github.com/gin-gonic/gin
 github.com/gin-gonic/gin/binding
 github.com/gin-gonic/gin/json
 github.com/gin-gonic/gin/render
-# github.com/go-sql-driver/mysql v1.4.1
+# github.com/go-sql-driver/mysql v1.6.0
 github.com/go-sql-driver/mysql
 # github.com/golang/protobuf v1.3.1
 github.com/golang/protobuf/proto
@@ -19,21 +19,20 @@ github.com/modern-go/concurrent
 github.com/modern-go/reflect2
 # github.com/ugorji/go/codec v0.0.0-20181209151446-772ced7fd4c2
 github.com/ugorji/go/codec
-# github.com/xyproto/cookie v0.0.0-20181220103240-f4de411f45ff
+# github.com/xyproto/cookie v0.0.0-20210319112338-2e0ffd4b75a9
 github.com/xyproto/cookie
-# github.com/xyproto/pinterface v0.0.0-20181004125811-9710ef24b684
+# github.com/xyproto/pinterface v0.0.0-20211009195247-f633d6c15725
 github.com/xyproto/pinterface
-# github.com/xyproto/randomstring v0.0.0-20181222003104-0f764aabc45a
+# github.com/xyproto/randomstring v0.0.0-20211020123341-4731a123782f
 github.com/xyproto/randomstring
 # github.com/xyproto/simplemaria v0.0.0-20190613092611-fe65bee4fd92
 github.com/xyproto/simplemaria
-# golang.org/x/crypto v0.0.0-20191029031824-8986dd9e96cf
+# golang.org/x/crypto v0.0.0-20211117183948-ae814b36b871
 golang.org/x/crypto/bcrypt
 golang.org/x/crypto/blowfish
-# golang.org/x/sys v0.0.0-20190606165138-5da285871e9c
+# golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1
+golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
-# google.golang.org/appengine v1.6.5
-google.golang.org/appengine/cloudsql
 # gopkg.in/go-playground/validator.v8 v8.18.2
 gopkg.in/go-playground/validator.v8
 # gopkg.in/yaml.v2 v2.2.2
