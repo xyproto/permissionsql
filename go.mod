@@ -3,7 +3,7 @@ module github.com/xyproto/permissionsql
 go 1.9
 
 require (
-	github.com/gin-gonic/gin v1.7.0
+	github.com/gin-gonic/gin v1.7.7
 	github.com/go-playground/validator/v10 v10.9.0 // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
