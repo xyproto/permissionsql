@@ -18,29 +18,17 @@ type defaultValidator struct {
 	validate *validator.Validate
 }
 
-type SliceValidationError []error
+type sliceValidateError []error
 
-// Error concatenates all error elements in SliceValidationError into a single string separated by \n.
-func (err SliceValidationError) Error() string {
-	n := len(err)
-	switch n {
-	case 0:
-		return ""
-	default:
-		var b strings.Builder
-		if err[0] != nil {
-			fmt.Fprintf(&b, "[%d]: %s", 0, err[0].Error())
+func (err sliceValidateError) Error() string {
+	var errMsgs []string
+	for i, e := range err {
+		if e == nil {
+			continue
 		}
-		if n > 1 {
-			for i := 1; i < n; i++ {
-				if err[i] != nil {
-					b.WriteString("\n")
-					fmt.Fprintf(&b, "[%d]: %s", i, err[i].Error())
-				}
-			}
-		}
-		return b.String()
+		errMsgs = append(errMsgs, fmt.Sprintf("[%d]: %s", i, e.Error()))
 	}
+	return strings.Join(errMsgs, "\n")
 }
 
 var _ StructValidator = &defaultValidator{}
@@ -59,7 +47,7 @@ func (v *defaultValidator) ValidateStruct(obj interface{}) error {
 		return v.validateStruct(obj)
 	case reflect.Slice, reflect.Array:
 		count := value.Len()
-		validateRet := make(SliceValidationError, 0)
+		validateRet := make(sliceValidateError, 0)
 		for i := 0; i < count; i++ {
 			if err := v.ValidateStruct(value.Index(i).Interface()); err != nil {
 				validateRet = append(validateRet, err)
@@ -83,7 +71,7 @@ func (v *defaultValidator) validateStruct(obj interface{}) error {
 // Engine returns the underlying validator engine which powers the default
 // Validator instance. This is useful if you want to register custom validations
 // or struct level validations. See validator GoDoc for more info -
-// https://pkg.go.dev/github.com/go-playground/validator/v10
+// https://godoc.org/gopkg.in/go-playground/validator.v8
 func (v *defaultValidator) Engine() interface{} {
 	v.lazyinit()
 	return v.validate
