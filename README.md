@@ -330,6 +330,6 @@ Using the `*pinterface.IUserState` type (from the [pinterface](https://github.co
 
 ## General information
 
-* Version: 2.1.0
+* Version: 2.1.1
 * License: BSD-3
-* Alexander F Rødseth &lt;xyproto@archlinux.org&gt;
+* Alexander F. Rødseth &lt;xyproto@archlinux.org&gt;
