@@ -25,7 +25,7 @@ For connecting to a MariaDB/MySQL host that is running locally, the `New` functi
 ## Requirements
 
 * MariaDB or MySQL
-* Go >= 1.9
+* Go 1.17 or later
 
 ## Examples
 
