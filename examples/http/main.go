@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/xyproto/permissionsql"
+	"github.com/xyproto/permissionsql/v2"
 	"github.com/xyproto/pinterface"
 )
 

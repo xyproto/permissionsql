@@ -41,7 +41,7 @@ import (
     "strings"
 
     "github.com/gin-gonic/gin"
-    "github.com/xyproto/permissionsql"
+    "github.com/xyproto/permissionsql/v2"
 )
 
 func main() {
@@ -157,7 +157,7 @@ import (
     "strings"
     "time"
 
-    "github.com/xyproto/permissionsql"
+    "github.com/xyproto/permissionsql/v2"
     "github.com/xyproto/pinterface"
 )
 
