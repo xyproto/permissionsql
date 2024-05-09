@@ -1,31 +1,8 @@
-# Compiled Object files, Static and Dynamic libs (Shared Objects)
+*.bak
 *.o
-*.a
 *.so
 *.swp
-
-# Folders
-_obj
-_test
-
-# Architecture specific extensions/prefixes
-*.[568vq]
-[568vq].out
-
-*.cgo1.go
-*.cgo2.c
-_cgo_defun.c
-_cgo_gotypes.go
-_cgo_export.*
-
-_testmain.go
-
-*.exe
-*.test
-
-# Executables for the examples
-examples/negroni/negroni
-examples/martini/martini
-examples/gin/gin
-examples/macaron/macaron
-examples/http/http
+*.tmp
+.DS_Store
+cmd/http/http
+include.txt
