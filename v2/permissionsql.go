@@ -2,19 +2,20 @@
 package permissionsql
 
 import (
-	"github.com/xyproto/pinterface"
 	"net/http"
 	"strings"
+
+	"github.com/xyproto/pinterface"
 )
 
 // The structure that keeps track of the permissions for various path prefixes
 type Permissions struct {
 	state              *UserState
+	denied             http.HandlerFunc
 	adminPathPrefixes  []string
 	userPathPrefixes   []string
 	publicPathPrefixes []string
 	rootIsPublic       bool
-	denied             http.HandlerFunc
 }
 
 const (
@@ -54,13 +55,24 @@ func NewWithDSN(connectionString string, database_name string) (*Permissions, er
 // a few default paths for admin/user/public path prefixes.
 func NewPermissions(state *UserState) *Permissions {
 	// default permissions
-	return &Permissions{state,
-		[]string{"/admin"},         // admin path prefixes
-		[]string{"/repo", "/data"}, // user path prefixes
-		[]string{"/", "/login", "/register", "/favicon.ico", "/style", "/img", "/js",
-			"/favicon.ico", "/robots.txt", "/sitemap_index.xml"}, // public
-		true,
-		PermissionDenied}
+	return &Permissions{
+		state:             state,
+		denied:            PermissionDenied,
+		adminPathPrefixes: []string{"/admin"},         // admin path prefixes
+		userPathPrefixes:  []string{"/repo", "/data"}, // user path prefixes
+		publicPathPrefixes: []string{
+			"/",
+			"/login",
+			"/register",
+			"/favicon.ico",
+			"/style",
+			"/img",
+			"/js",
+			"/favicon.ico",
+			"/robots.txt",
+			"/sitemap_index.xml",
+		}, // public
+		rootIsPublic: true}
 }
 
 // Specify the http.HandlerFunc for when the permissions are denied
