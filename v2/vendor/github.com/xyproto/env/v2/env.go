@@ -4,6 +4,7 @@ package env
 import (
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -78,6 +79,11 @@ func Has(envName string) bool {
 	return Str(envName) != ""
 }
 
+// No returns true if the given environment variable name is not set or empty.
+func No(envName string) bool {
+	return Str(envName) == ""
+}
+
 // Is returns true if the given environment variable is the given string value.
 // The whitespace of both values are trimmed before the comparison.
 func Is(envName, value string) bool {
@@ -127,6 +133,15 @@ func Int8(envName string, defaultValue int8) int8 {
 		return defaultValue
 	}
 	return int8(i8)
+}
+
+// UInt returns the number stored in the environment variable, or the provided default value.
+func UInt(envName string, defaultValue uint) uint {
+	ui, err := strconv.ParseUint(Str(envName), 10, 64)
+	if err != nil {
+		return defaultValue
+	}
+	return uint(ui)
 }
 
 // UInt64 returns the number stored in the environment variable, or the provided default value.
@@ -249,32 +264,37 @@ func AsBoolSimple(s string) bool {
 	return s == "1"
 }
 
+// CurrentUser returns the value of LOGNAME, USER or just the string "user", in that order
+func CurrentUser() string {
+	return StrAlt("LOGNAME", "USER", "user")
+}
+
 // HomeDir returns the path to the home directory of the user, if available.
-// If not available, $LOGNAME or $USER are used to construct a path starting with /home/.
-// If $LOGNAME and $USER are not available, just "/tmp" is returned.
+// If not available, the username is to construct a path starting with /home/.
+// If a username is not available, then "/tmp" is returned.
 // The returned string is what the home directory should have been named, if it would have existed.
 // No checks are made for if the directory exists.
 func HomeDir() string {
-	homeDir, err := userHomeDir()
-	if err != nil {
-		// Use $LOGNAME, $USER or "user", in that order
-		userName := StrAlt("LOGNAME", "USER", "user")
+	if homeDir, err := userHomeDir(); err == nil { // success, use the home directory
+		return homeDir
+	}
+	userName := CurrentUser()
+	switch userName {
+	case "root":
 		// If the user name is "root", use /root
-		if userName == "root" {
-			return "/root"
-		}
-		// If the user name is "user", use either $HOME or /tmp
-		if userName == "user" {
-			return Str("HOME", "/tmp")
-		}
+		return "/root"
+	case "":
+		// If the user name is not available, use either $HOME or /tmp
+		return Str("HOME", "/tmp")
+	default:
 		// Use $HOME if it's available, and a constructed home directory path if not
 		return Str("HOME", "/home/"+userName)
 	}
-	return homeDir
 }
 
 // ExpandUser replaces a leading ~ or $HOME with the path
-// to the home directory of the current user
+// to the home directory of the current user.
+// If no expansion is done, then the original given path is returned.
 func ExpandUser(path string) string {
 	// this is a simpler alternative to using os.UserHomeDir (which requires Go 1.12 or later)
 	if strings.HasPrefix(path, "~") {
@@ -284,6 +304,7 @@ func ExpandUser(path string) string {
 		// Expand a leading $HOME variable to the home directory
 		path = strings.Replace(path, "$HOME", HomeDir(), 1)
 	}
+	// Return the original given path
 	return path
 }
 
@@ -299,4 +320,37 @@ func Environ() []string {
 		return xs
 	}
 	return os.Environ()
+}
+
+// Keys returns the all the environment variable names as a sorted string slice
+func Keys() []string {
+	var keys []string
+	if useCaching {
+		mut.RLock()
+		defer mut.RUnlock()
+		for k := range environment {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		return keys
+	}
+	for _, keyAndValue := range os.Environ() {
+		pair := strings.SplitN(keyAndValue, "=", 2)
+		keys = append(keys, pair[0])
+	}
+	sort.Strings(keys)
+	return keys
+}
+
+// Map returns the current environment variables as a map from name to value
+func Map() map[string]string {
+	if useCaching {
+		return environment
+	}
+	m := make(map[string]string)
+	for _, keyAndValue := range os.Environ() {
+		pair := strings.SplitN(keyAndValue, "=", 2)
+		m[pair[0]] = pair[1]
+	}
+	return m
 }

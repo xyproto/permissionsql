@@ -2,9 +2,8 @@
 package env
 
 import (
-	"errors"
+	"fmt"
 	"os"
-	"runtime"
 	"strings"
 	"sync"
 )
@@ -45,8 +44,8 @@ func Load() {
 	mut.Lock()
 	environment = make(map[string]string)
 	// Read all the environment variables into the map
-	for _, statement := range os.Environ() {
-		pair := strings.SplitN(statement, "=", 2)
+	for _, keyAndValue := range os.Environ() {
+		pair := strings.SplitN(keyAndValue, "=", 2)
 		environment[pair[0]] = pair[1]
 	}
 	mut.Unlock()
@@ -62,7 +61,16 @@ func Unload() {
 // Set calls os.Setenv.
 // If caching is enabled, the value in the environment map is also set and there
 // is no need to call Load() to re-read the environment variables from the system.
-func Set(name, value string) error {
+func Set(name string, values ...string) error {
+	var value string
+	switch len(values) {
+	case 0:
+		value = "1" // use "1" as the environment var value if none is given
+	case 1:
+		value = values[0] // use the given value if only one is given
+	default:
+		return fmt.Errorf("can only set %s to a maximum of 1 value", name)
+	}
 	if useCaching {
 		mut.RLock()
 		if environment == nil {
@@ -72,12 +80,9 @@ func Set(name, value string) error {
 			mut.RUnlock()
 		}
 		mut.Lock()
-		if value == "" {
-			delete(environment, name)
-		} else {
-			environment[name] = value
-		}
+		environment[name] = value
 		mut.Unlock()
+
 	}
 	return os.Setenv(name, value)
 }
@@ -85,25 +90,17 @@ func Set(name, value string) error {
 // Unset will clear an environment variable by calling os.Setenv(name, "").
 // The cache entry will also be cleared if useCaching is true.
 func Unset(name string) error {
-	return Set(name, "")
-}
-
-// userHomeDir is the same as os.UserHomeDir, except that "getenv" is called instead of "os.Getenv",
-// and the two switches are refactored into one.
-func userHomeDir() (string, error) {
-	env, enverr := "HOME", "$HOME"
-	switch runtime.GOOS {
-	case "android":
-		return "/sdcard", nil
-	case "ios":
-		return "/", nil
-	case "windows":
-		env, enverr = "USERPROFILE", "%userprofile%"
-	case "plan9":
-		env, enverr = "home", "$home"
+	if useCaching {
+		mut.RLock()
+		if environment == nil {
+			mut.RUnlock()
+			Load()
+		} else {
+			mut.RUnlock()
+		}
+		mut.Lock()
+		delete(environment, name)
+		mut.Unlock()
 	}
-	if v := getenv(env); v != "" {
-		return v, nil
-	}
-	return "", errors.New(enverr + " is not defined")
+	return os.Setenv(name, "")
 }

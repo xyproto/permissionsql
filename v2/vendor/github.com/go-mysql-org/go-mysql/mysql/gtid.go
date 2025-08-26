@@ -17,6 +17,9 @@ type GTIDSet interface {
 	Update(GTIDStr string) error
 
 	Clone() GTIDSet
+
+	// IsEmpty returns true if the given set is empty and false otherwise.
+	IsEmpty() bool
 }
 
 func ParseGTIDSet(flavor string, s string) (GTIDSet, error) {
@@ -28,4 +31,8 @@ func ParseGTIDSet(flavor string, s string) (GTIDSet, error) {
 	default:
 		return nil, errors.Errorf("invalid flavor %s", flavor)
 	}
+}
+
+type BinlogGTIDEvent interface {
+	GTIDNext() (GTIDSet, error)
 }
