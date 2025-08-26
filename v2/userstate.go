@@ -401,7 +401,7 @@ func (state *UserState) Username(req *http.Request) string {
 }
 
 // Get how long a login cookie should last, in seconds.
-func (state *UserState) CookieTimeout(username string) int64 {
+func (state *UserState) CookieTimeout(_ string) int64 {
 	return state.cookieTime
 }
 
