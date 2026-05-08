@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	github.com/xyproto/cookie/v2 v2.2.7
-	github.com/xyproto/pinterface v1.6.0
+	github.com/xyproto/pinterface/v2 v2.1.2
 	github.com/xyproto/simplemaria v1.4.0
 	golang.org/x/crypto v0.50.0
 )
@@ -19,7 +19,6 @@ require (
 	github.com/pingcap/log v1.1.1-0.20260227082333-572e590d08f1 // indirect
 	github.com/pingcap/tidb/pkg/parser v0.0.0-20260508113557-84548dbcc173 // indirect
 	github.com/xyproto/env/v2 v2.5.6 // indirect
-	github.com/xyproto/pinterface/v2 v2.1.2 // indirect
 	github.com/xyproto/randomstring v1.2.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
