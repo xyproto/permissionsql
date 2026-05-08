@@ -3,7 +3,7 @@ package permissionsql
 import (
 	"testing"
 
-	"github.com/xyproto/pinterface"
+	"github.com/xyproto/pinterface/v2"
 )
 
 func TestInterface(t *testing.T) {
